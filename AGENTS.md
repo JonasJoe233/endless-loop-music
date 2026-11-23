@@ -30,3 +30,4 @@ These rules apply to humans and AI coding agents working in this repo.
     - Hairlines instead of cards. At most one filled block per section.
     - `--act` red means only "this makes sound or opens a demo". One solid button per screen.
     - Game colors (red, blue, gold, felt green) appear only inside `.stage`.
+11. Pages are bilingual through `assets/i18n.js`. English stays in the HTML. Put the Chinese next to it in `data-zh` (innerHTML), `data-zh-alt` or `data-zh-href`. Strings built in JS go through `tr(en, zh)`. Language order: `?lang=` in the URL, then the visitor's last click on the switch, then the browser language. Every new visible string needs both languages in the same commit.

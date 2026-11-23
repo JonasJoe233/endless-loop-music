@@ -16,6 +16,8 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0}
+/* Chinese pages: the Latin serifs have no CJK glyphs, so name a CJK serif explicitly instead of a random fallback */
+:root:lang(zh-CN){--serif:"Iowan Old Style",Palatino,Georgia,"Songti SC","Noto Serif CJK SC","Source Han Serif SC",serif}
 body{background:var(--paper);color:var(--ink);font:400 var(--fs-body)/1.65 var(--sans);-webkit-font-smoothing:antialiased}
 a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--mute);text-decoration-thickness:1px;text-underline-offset:4px}
 a:hover{text-decoration-color:var(--ink)}
@@ -78,7 +80,7 @@ figcaption{font-size:var(--fs-small);color:var(--mute);margin-top:10px}
 .site-nav .ext{display:flex;gap:18px;white-space:nowrap}
 @media (max-width:760px){
   .site-nav{gap:14px;padding:0 14px}
-  .site-nav .brand span,.site-nav .ext a:not(.gh){display:none}
+  .site-nav .brand span,.site-nav .ext a:not(.gh):not([data-lang-switch]){display:none}
   .site-nav nav{gap:12px}
   .site-nav nav a small{display:none}
 }

@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Homepage example · endless-loop.js</title>
+<title data-zh="主页模板 · endless-loop.js">Homepage example · endless-loop.js</title>
 <link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/i18n.js"></script>
 <style>
   /* demo-site only: the template sits in a hairline frame, read as Figure 1 */
   .preview{margin-top:32px}
@@ -24,37 +25,38 @@
 <header class="site-nav">
   <a class="brand" href="../index.html">∞ <span>endless-loop-music</span></a>
   <nav aria-label="Site">
-    <a href="../index.html">Overview</a>
-    <a href="../demos/balatro.html"><small>01</small>Balatro</a>
-    <a href="../demos/mouse-bend.html"><small>02</small>Mouse bend</a>
-    <a href="../examples/homepage.html" aria-current="page"><small>03</small>Starter</a>
+    <a href="../index.html" data-zh="概览">Overview</a>
+    <a href="../demos/balatro.html" data-zh="<small>01</small>小丑牌"><small>01</small>Balatro</a>
+    <a href="../demos/mouse-bend.html" data-zh="<small>02</small>鼠标调音"><small>02</small>Mouse bend</a>
+    <a href="../examples/homepage.html" aria-current="page" data-zh="<small>03</small>主页模板"><small>03</small>Starter</a>
   </nav>
-  <div class="ext"><a href="https://github.com/JonasJoe233/endless-loop-music/blob/main/README.zh-CN.md">中文</a><a class="gh" href="https://github.com/JonasJoe233/endless-loop-music">GitHub</a></div>
+  <div class="ext"><a data-lang-switch href="?lang=zh">中文</a><a class="gh" href="https://github.com/JonasJoe233/endless-loop-music" data-zh-href="https://github.com/JonasJoe233/endless-loop-music/blob/main/README.zh-CN.md">GitHub</a></div>
 </header>
 <section class="page-intro">
-  <div class="step">Step 3 of 3 · copy this</div>
-  <h1>Homepage starter</h1>
-  <p>A complete homepage in about 75 lines on top of <code>src/endless-loop.js</code>. The frame below is the template you copy. The nav and this text belong to the demo site.</p>
+  <div class="step" data-zh="第 3 步，共 3 步 · 复制这个">Step 3 of 3 · copy this</div>
+  <h1 data-zh="主页模板">Homepage starter</h1>
+  <p data-zh="一个完整主页，在 <code>src/endless-loop.js</code> 之上约 75 行。下面框里是你要复制的模板。导航和这段文字属于演示站。">A complete homepage in about 75 lines on top of <code>src/endless-loop.js</code>. The frame below is the template you copy. The nav and this text belong to the demo site.</p>
 </section>
-<div class="col"><p class="notice" id="fileNote" hidden>You opened this file from disk. ES module imports are blocked on <code>file://</code>, so nothing will play. Run <code>python3 -m http.server 8000</code> in the repo folder and open <code>http://localhost:8000/examples/homepage.html</code>, or use the live site.</p></div>
+<div class="col"><p class="notice" id="fileNote" hidden data-zh="你是从本地磁盘打开的这个文件。<code>file://</code> 下 ES module 导入会被拦截，所以不会出声。在仓库目录运行 <code>python3 -m http.server 8000</code>，打开 <code>http://localhost:8000/examples/homepage.html</code>，或者直接用线上站点。">You opened this file from disk. ES module imports are blocked on <code>file://</code>, so nothing will play. Run <code>python3 -m http.server 8000</code> in the repo folder and open <code>http://localhost:8000/examples/homepage.html</code>, or use the live site.</p></div>
 <script>if (location.protocol === "file:") document.getElementById("fileNote").hidden = false;</script>
 <figure class="wide preview">
   <div class="frame">
     <main class="tpl">
-      <h1>Your Name</h1>
-      <p>A minimal homepage with an endless soundtrack. Press play, then move the mouse up and down.
+      <h1 data-zh="你的名字">Your Name</h1>
+      <p data-zh="一个带无限配乐的极简主页。点播放，然后上下移动鼠标。下面两条分轨在浏览器里合成，所以这个例子不需要音频文件。换成你自己的 <code>{ url: 'stem.mp3', loopSeconds: 9.6 }</code> 即可。">A minimal homepage with an endless soundtrack. Press play, then move the mouse up and down.
          The two stems below are synthesized in the browser so this example needs no audio files.
          Swap them for your own <code>{ url: 'stem.mp3', loopSeconds: 9.6 }</code>.</p>
-      <button id="play">▶ Play sound</button><button id="scene">Add sparkle</button>
+      <button id="play" data-zh="▶ 播放声音">▶ Play sound</button><button id="scene" data-zh="加点闪光">Add sparkle</button>
     </main>
     <div id="meter"><div id="dot"></div></div>
   </div>
-  <figcaption>Figure 1. Preview of the template. The dot on the right follows your mouse height, which sets the pitch bend.</figcaption>
+  <figcaption data-zh="图 1. 模板预览。右侧圆点跟随鼠标高度，鼠标高度决定弯音。">Figure 1. Preview of the template. The dot on the right follows your mouse height, which sets the pitch bend.</figcaption>
 </figure>
-<div class="pager"><a class="prev" href="../demos/mouse-bend.html"><small>← Step 2</small>Mouse bend lab</a><a class="next" href="../index.html#use"><small>Done →</small>Add it to your homepage</a></div>
+<div class="pager"><a class="prev" href="../demos/mouse-bend.html" data-zh="<small>← 第 2 步</small>鼠标调音实验室"><small>← Step 2</small>Mouse bend lab</a><a class="next" href="../index.html#use" data-zh="<small>完成 →</small>用到你的主页上"><small>Done →</small>Add it to your homepage</a></div>
 
 <script type="module">
 import { createEndlessLoop } from '../src/endless-loop.js';
+const tr = window.tr || (en => en);   // demo-site translation; on your own page this just returns the English
 
 const SR = 44100, BEAT = 60 / 96, LOOP = 16 * BEAT;          // 4 bars at 96 BPM
 const hz = m => 440 * 2 ** ((m - 69) / 12);
@@ -85,14 +87,15 @@ const loop = await createEndlessLoop({
   rate: 1, volume: 0.6,
 });
 
+let muted = false;
 document.getElementById('play').onclick = e => {
-  if (!loop.playing) { loop.start(); loop.followPointer(); e.target.textContent = '❚❚ Mute'; return; }
-  const muted = e.target.textContent.includes('Unmute');
-  loop.mute(!muted); e.target.textContent = muted ? '❚❚ Mute' : '▶ Unmute';
+  if (!loop.playing) { loop.start(); loop.followPointer(); e.target.textContent = tr('❚❚ Mute', '❚❚ 静音'); return; }
+  muted = !muted; loop.mute(muted);
+  e.target.textContent = muted ? tr('▶ Unmute', '▶ 取消静音') : tr('❚❚ Mute', '❚❚ 静音');
 };
 let on = false;
 document.getElementById('scene').onclick = e => {
-  on = !on; loop.setScene([1, on ? 1 : 0]); e.target.textContent = on ? 'Remove sparkle' : 'Add sparkle';
+  on = !on; loop.setScene([1, on ? 1 : 0]); e.target.textContent = on ? tr('Remove sparkle', '去掉闪光') : tr('Add sparkle', '加点闪光');
 };
 addEventListener('pointermove', e => { document.getElementById('dot').style.top = (e.clientY / innerHeight * 100) + '%'; }); // pitch follows height in the window
 </script>

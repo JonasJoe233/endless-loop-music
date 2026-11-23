@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Endless loop music · mouse bend</title>
+<title data-zh="endless-loop-music · 鼠标调音">Endless loop music · mouse bend</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/i18n.js"></script>
 <style>
   html,body{height:100%;overflow:hidden}
   /* the whole screen under the nav is one .stage */
@@ -29,6 +30,11 @@
   .mini-pager{display:flex;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--felt-line)}
   .mini-pager a{text-decoration:none}
   .hint{position:fixed;right:140px;bottom:16px;color:var(--felt-mute);text-align:right;z-index:5}
+  #stage{touch-action:none}  /* let a finger drag drive pointermove instead of scrolling */
+  .touch-hint{display:none;position:fixed;left:50%;top:calc(var(--nav-h) + 14px);transform:translateX(-50%);z-index:6;
+    padding:6px 12px;border-radius:999px;background:rgba(0,0,0,.35);color:var(--felt-ink);white-space:nowrap;pointer-events:none;transition:opacity .4s}
+  @media (pointer:coarse){.touch-hint{display:block}}
+  .touch-hint.gone{opacity:0}
   @media (max-width:760px){
     .panel{top:auto;width:auto;right:0;max-height:52vh;border-right:0;border-top:1px solid var(--felt-line);padding:18px 16px}
     .hint{display:none}
@@ -39,32 +45,33 @@
 <header class="site-nav">
   <a class="brand" href="../index.html">∞ <span>endless-loop-music</span></a>
   <nav aria-label="Site">
-    <a href="../index.html">Overview</a>
-    <a href="../demos/balatro.html"><small>01</small>Balatro</a>
-    <a href="../demos/mouse-bend.html" aria-current="page"><small>02</small>Mouse bend</a>
-    <a href="../examples/homepage.html"><small>03</small>Starter</a>
+    <a href="../index.html" data-zh="概览">Overview</a>
+    <a href="../demos/balatro.html" data-zh="<small>01</small>小丑牌"><small>01</small>Balatro</a>
+    <a href="../demos/mouse-bend.html" aria-current="page" data-zh="<small>02</small>鼠标调音"><small>02</small>Mouse bend</a>
+    <a href="../examples/homepage.html" data-zh="<small>03</small>主页模板"><small>03</small>Starter</a>
   </nav>
-  <div class="ext"><a href="https://github.com/JonasJoe233/endless-loop-music/blob/main/README.zh-CN.md">中文</a><a class="gh" href="https://github.com/JonasJoe233/endless-loop-music">GitHub</a></div>
+  <div class="ext"><a data-lang-switch href="?lang=zh">中文</a><a class="gh" href="https://github.com/JonasJoe233/endless-loop-music" data-zh-href="https://github.com/JonasJoe233/endless-loop-music/blob/main/README.zh-CN.md">GitHub</a></div>
 </header>
 <div id="stage" class="stage"><canvas id="cv"></canvas></div>
 
 <div class="panel stage">
-  <div class="step">Step 2 of 3 · the homepage trick</div>
-  <h1>Mouse bend lab</h1>
-  <p class="sub">Five looping stems. Move the mouse to bend the pitch, then flip each switch and hear the loop point disappear.</p>
-  <button id="start">▶ Start sound</button>
+  <div class="step" data-zh="第 2 步，共 3 步 · 主页的做法">Step 2 of 3 · the homepage trick</div>
+  <h1 data-zh="鼠标调音实验室">Mouse bend lab</h1>
+  <p class="sub" data-zh="五条循环分轨。移动鼠标弯曲音高，再逐个打开开关，听循环点消失。">Five looping stems. Move the mouse to bend the pitch, then flip each switch and hear the loop point disappear.</p>
+  <button id="start" data-zh="▶ 开始播放">▶ Start sound</button>
 
-  <div class="row"><label>① Mouse Y bends pitch<small>Same curve as nays.tech: 32% dead zone in the middle, ±200 cents at the edges</small></label><button data-k="bend" class="on">On</button></div>
-  <div class="row"><label>② Coprime stem lengths<small>Chords 16 beats, arp 7, bells 9: 1008 beats before an exact repeat</small></label><button data-k="poly">Off</button></div>
-  <div class="row"><label>③ Slow pitch drift<small>Two sines with incommensurate periods, about ±30 cents, never line up</small></label><button data-k="drift">Off</button></div>
-  <div class="row" style="display:block"><label>④ Scenes<small>Stems crossfade, the beat never stops</small></label>
-    <div class="scenes"><button data-s="calm">Blind</button><button data-s="shop">Shop</button><button data-s="boss">Boss</button></div>
+  <div class="row"><label data-zh="① 鼠标高度弯曲音高<small>与 nays.tech 同一条曲线：中间 32% 是死区，边缘 ±200 音分</small>">① Mouse Y bends pitch<small>Same curve as nays.tech: 32% dead zone in the middle, ±200 cents at the edges</small></label><button data-k="bend" class="on" data-zh="开">On</button></div>
+  <div class="row"><label data-zh="② 互质的分轨长度<small>和弦 16 拍，琶音 7 拍，铃声 9 拍：1008 拍后才完全重复</small>">② Coprime stem lengths<small>Chords 16 beats, arp 7, bells 9: 1008 beats before an exact repeat</small></label><button data-k="poly" data-zh="关">Off</button></div>
+  <div class="row"><label data-zh="③ 缓慢音高漂移<small>两条周期不可通约的正弦，约 ±30 音分，永远对不齐</small>">③ Slow pitch drift<small>Two sines with incommensurate periods, about ±30 cents, never line up</small></label><button data-k="drift" data-zh="关">Off</button></div>
+  <div class="row" style="display:block"><label data-zh="④ 场景<small>分轨交叉淡化，节拍从不中断</small>">④ Scenes<small>Stems crossfade, the beat never stops</small></label>
+    <div class="scenes"><button data-s="calm" data-zh="盲注">Blind</button><button data-s="shop" data-zh="商店">Shop</button><button data-s="boss" data-zh="Boss">Boss</button></div>
   </div>
 
-  <div class="stats" id="stats">Not started</div>
-  <div class="mini-pager"><a href="balatro.html">← Step 1 · Balatro</a><a href="../examples/homepage.html">Step 3 · Starter →</a></div>
+  <div class="stats" id="stats" data-zh="未开始">Not started</div>
+  <div class="mini-pager"><a href="balatro.html" data-zh="← 第 1 步 · 小丑牌">← Step 1 · Balatro</a><a href="../examples/homepage.html" data-zh="第 3 步 · 主页模板 →">Step 3 · Starter →</a></div>
 </div>
-<div class="hint">Rings: where each stem is inside its own loop<br>Right bar: mouse height → pitch-bend curve</div>
+<div class="touch-hint" id="touchHint" data-zh="↕ 上下拖动来弯曲音高">↕ Drag up and down to bend the pitch</div>
+<div class="hint" data-zh="圆环：每条分轨在自己循环里的位置<br>右侧竖条：鼠标高度 → 弯音曲线">Rings: where each stem is inside its own loop<br>Right bar: mouse height → pitch-bend curve</div>
 
 <script>
 const BPM = 90, BEAT = 60 / BPM, SR = 44100, BASE = 16; // chord progression: 16 beats = 4 bars
@@ -150,6 +157,8 @@ const STEMS = [
       ...[0, .5, 1, 1.5, 2, 2.5, 3, 3.5].map(t => ({ t, k: 'hat', v: t % 1 ? 0.03 : 0.06 }))] }
 ];
 
+const STEM_ZH = { chords: '和弦', bass: '贝斯', arp: '琶音', bells: '铃声', drums: '鼓' };
+
 /* ---------- render one loop offline and wrap the tail back to the start ---------- */
 async function renderStem(stem, poly) {
   const beats = (poly && stem.polyOnly) ? stem.len : BASE;   // with ② off, every stem is cut to 16 beats
@@ -204,7 +213,7 @@ async function start() {
 
 async function load() {
   const my = ++gen;
-  document.getElementById('stats').textContent = 'Rendering stems…';
+  document.getElementById('stats').textContent = tr('Rendering stems…', '正在渲染分轨…');
   const rendered = await Promise.all(STEMS.map(s => renderStem(s, S.poly)));
   if (my !== gen) return;                      // a switch changed during rendering: drop this result
   const now = ctx.currentTime, at = now + 0.12;
@@ -231,14 +240,19 @@ function setScene(name) {
 }
 
 /* ---------- interaction ---------- */
-addEventListener('pointermove', e => { mouseY = e.clientY - TOP; }, { passive: true });
+const touchHint = document.getElementById('touchHint');
+let dragged = 0;
+addEventListener('pointermove', e => {
+  mouseY = e.clientY - TOP;
+  if (e.pointerType === 'touch' && playing && ++dragged === 20) touchHint.classList.add('gone'); // hide after a real drag, not a tap
+}, { passive: true });
 document.getElementById('start').onclick = async e => {
-  e.target.disabled = true; e.target.textContent = 'Playing: move the mouse';
+  e.target.disabled = true; e.target.textContent = matchMedia('(pointer:coarse)').matches ? tr('Playing: drag up and down', '播放中：上下拖动') : tr('Playing: move the mouse', '播放中：移动鼠标');
   await start();
 };
 document.querySelectorAll('[data-k]').forEach(b => b.onclick = () => {
   const k = b.dataset.k; S[k] = !S[k];
-  b.classList.toggle('on', S[k]); b.textContent = S[k] ? 'On' : 'Off';
+  b.classList.toggle('on', S[k]); b.textContent = S[k] ? tr('On', '开') : tr('Off', '关');
   if (k === 'poly' && ctx) load();
 });
 document.querySelectorAll('[data-s]').forEach(b => b.onclick = () => setScene(b.dataset.s));
@@ -263,10 +277,14 @@ function stats() {
   const period = live.reduce((a, l) => lcm(a, l.beats), 1);  // beats until every stem is back at its start together
   const pSec = period * BEAT, left = (pSec - (pos % pSec)) / rate;
   document.getElementById('stats').innerHTML =
-    `Bend <b>${cur >= 0 ? '+' : ''}${cur.toFixed(0)}</b> cents (${(cur / 100).toFixed(2)} semitones), speed <b>×${rate.toFixed(3)}</b><br>` +
+    tr(`Bend <b>${cur >= 0 ? '+' : ''}${cur.toFixed(0)}</b> cents (${(cur / 100).toFixed(2)} semitones), speed <b>×${rate.toFixed(3)}</b><br>` +
     `Chord loop played <b>${Math.floor(pos / (BASE * BEAT))}</b> times<br>` +
     `Full repeat period <b>${period}</b> beats ≈ <b>${fmt(pSec)}</b><br>` +
-    `Next exact repeat in <b>${S.drift ? '∞ (drift periods never align)' : fmt(left)}</b>`;
+    `Next exact repeat in <b>${S.drift ? '∞ (drift periods never align)' : fmt(left)}</b>`,
+    `弯音 <b>${cur >= 0 ? '+' : ''}${cur.toFixed(0)}</b> 音分（${(cur / 100).toFixed(2)} 个半音），速度 <b>×${rate.toFixed(3)}</b><br>` +
+    `和弦循环已播放 <b>${Math.floor(pos / (BASE * BEAT))}</b> 遍<br>` +
+    `完整重复周期 <b>${period}</b> 拍 ≈ <b>${fmt(pSec)}</b><br>` +
+    `距下次完全重复 <b>${S.drift ? '∞（漂移周期永远对不齐）' : fmt(left)}</b>`);
 }
 /* ---------- visuals ---------- */
 const cv = document.getElementById('cv'), g2 = cv.getContext('2d');
@@ -304,7 +322,7 @@ function draw(t) {
     const ha = a0 + ph * Math.PI * 2;
     g2.fillStyle = l.stem.color; g2.beginPath(); g2.arc(cx + Math.cos(ha) * r, cy + Math.sin(ha) * r, 6, 0, Math.PI * 2); g2.fill();
     g2.fillStyle = 'rgba(243,234,219,.75)'; g2.font = '12px -apple-system,PingFang SC,sans-serif'; g2.textAlign = 'right';
-    g2.fillText(`${l.stem.name} ${beats} beats`, cx - 10, cy - r + 4);
+    g2.fillText(tr(`${l.stem.name} ${beats} beats`, `${STEM_ZH[l.stem.name]} ${beats} 拍`), cx - 10, cy - r + 4);
   });
 
   // right side: mouse height → bend curve
@@ -318,7 +336,7 @@ function draw(t) {
   const mx = x0 + (S.bend ? bendFromY(mouseY, H) : 0) / 200 * amp;
   g2.fillStyle = '#fff'; g2.beginPath(); g2.arc(mx, mouseY, 5, 0, Math.PI * 2); g2.fill();
   g2.fillStyle = 'rgba(243,234,219,.6)'; g2.textAlign = 'center';
-  g2.fillText('+2 st', x0, 16); g2.fillText('dead zone', x0, H * 0.5 + 4); g2.fillText('-2 st', x0, H - 8);
+  g2.fillText(tr('+2 st', '+2 半音'), x0, 16); g2.fillText(tr('dead zone', '死区'), x0, H * 0.5 + 4); g2.fillText(tr('-2 st', '-2 半音'), x0, H - 8);
 }
 requestAnimationFrame(frame);
 </script>

@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>endless-loop-music · why a short loop can sound endless</title>
+<title data-zh="endless-loop-music · 为什么短循环能听成无限">endless-loop-music · why a short loop can sound endless</title>
 <meta name="description" content="Balatro's music machine and a mouse-reactive homepage, rebuilt in plain Web Audio. Two demos, a starter page and a tiny module.">
 <link rel="stylesheet" href="assets/site.css">
+<script src="assets/i18n.js"></script>
 <style>
   .hero{padding-top:96px;padding-bottom:64px}
   .steps{margin-top:8px}
@@ -25,65 +26,65 @@
 <header class="site-nav">
   <a class="brand" href="index.html">∞ <span>endless-loop-music</span></a>
   <nav aria-label="Site">
-    <a href="index.html" aria-current="page">Overview</a>
-    <a href="demos/balatro.html"><small>01</small>Balatro</a>
-    <a href="demos/mouse-bend.html"><small>02</small>Mouse bend</a>
-    <a href="examples/homepage.html"><small>03</small>Starter</a>
+    <a href="index.html" aria-current="page" data-zh="概览">Overview</a>
+    <a href="demos/balatro.html" data-zh="<small>01</small>小丑牌"><small>01</small>Balatro</a>
+    <a href="demos/mouse-bend.html" data-zh="<small>02</small>鼠标调音"><small>02</small>Mouse bend</a>
+    <a href="examples/homepage.html" data-zh="<small>03</small>主页模板"><small>03</small>Starter</a>
   </nav>
-  <div class="ext"><a href="https://github.com/JonasJoe233/endless-loop-music/blob/main/README.zh-CN.md">中文</a><a class="gh" href="https://github.com/JonasJoe233/endless-loop-music">GitHub</a></div>
+  <div class="ext"><a data-lang-switch href="?lang=zh">中文</a><a class="gh" href="https://github.com/JonasJoe233/endless-loop-music" data-zh-href="https://github.com/JonasJoe233/endless-loop-music/blob/main/README.zh-CN.md">GitHub</a></div>
 </header>
 
 <main>
   <section class="col hero">
-    <div class="eyebrow">Web Audio · no build · no audio files</div>
-    <h1 class="display">Why a short loop can sound endless</h1>
-    <p class="lede">Balatro's soundtrack never seems to start over. Some homepages bend their music as you move the mouse. This site rebuilds both so you can hear each part, then hands you a starter for your own page.</p>
+    <div class="eyebrow" data-zh="Web Audio · 无需构建 · 无音频文件">Web Audio · no build · no audio files</div>
+    <h1 class="display" data-zh="为什么短循环能听成无限">Why a short loop can sound endless</h1>
+    <p class="lede" data-zh="小丑牌的配乐好像从不重新开始。有些个人主页的音乐会跟着鼠标弯音。这个站把两者都重做了一遍，让你逐个零件去听，最后给你一份主页模板。">Balatro's soundtrack never seems to start over. Some homepages bend their music as you move the mouse. This site rebuilds both so you can hear each part, then hands you a starter for your own page.</p>
     <div class="links">
-      <a class="btn" href="demos/balatro.html">▶ Play the Balatro demo</a>
-      <a href="#path">See the three steps</a>
+      <a class="btn" href="demos/balatro.html" data-zh="▶ 试玩小丑牌 demo">▶ Play the Balatro demo</a>
+      <a href="#path" data-zh="看三个步骤">See the three steps</a>
     </div>
   </section>
   <div class="col"><hr class="rule"></div>
 
   <section class="col section" id="story">
-    <h2>Two things I liked turned out to be one trick</h2>
-    <h3>Balatro: a loop with no seam</h3>
-    <p>I played Balatro for hours and never heard the music end. There is no start and no finish, only new material appearing. The game's source shows why. Five tracks run in sync forever, everything plays at 0.7× speed, and your score adds layers on top.</p>
-    <h3>nays.tech: music that follows the mouse</h3>
-    <p>The homepage <a href="https://nays.tech">nays.tech</a> bends its background loop as the cursor moves up and down. It feels alive and costs a few lines of code: a dead zone in the middle, a smoothstep curve, ±200 cents at the edges.</p>
-    <p class="note">Both keep the audio running and never restart it. They change only volume, speed and pitch. That one rule is what hides the loop.</p>
+    <h2 data-zh="我喜欢的两样东西，原来是同一个技巧">Two things I liked turned out to be one trick</h2>
+    <h3 data-zh="小丑牌：没有接缝的循环">Balatro: a loop with no seam</h3>
+    <p data-zh="我玩了几个小时小丑牌，没听到音乐结束过。它没有开头也没有结尾，只有新的声部不断出现。游戏源码给出了原因：五条音轨同步循环永不停止，全部按 0.7 倍速播放，你的得分再往上叠声部。">I played Balatro for hours and never heard the music end. There is no start and no finish, only new material appearing. The game's source shows why. Five tracks run in sync forever, everything plays at 0.7× speed, and your score adds layers on top.</p>
+    <h3 data-zh="nays.tech：跟着鼠标走的音乐">nays.tech: music that follows the mouse</h3>
+    <p data-zh="主页 <a href=&quot;https://nays.tech&quot;>nays.tech</a> 会随光标上下移动弯曲背景循环的音高。它听起来是活的，代码只有几行：中间一段死区，一条 smoothstep 曲线，边缘 ±200 音分。">The homepage <a href="https://nays.tech">nays.tech</a> bends its background loop as the cursor moves up and down. It feels alive and costs a few lines of code: a dead zone in the middle, a smoothstep curve, ±200 cents at the edges.</p>
+    <p class="note" data-zh="两者都让音频一直播放，从不重启。它们只改音量、速度和音高。藏住循环点靠的就是这一条规则。">Both keep the audio running and never restart it. They change only volume, speed and pitch. That one rule is what hides the loop.</p>
   </section>
 
   <section class="col section" id="path">
-    <h2>Three pages, about ten minutes</h2>
-    <p class="mute">Each page has a start button, because browsers block sound until you click. Use headphones if you can.</p>
+    <h2 data-zh="三个页面，大约十分钟">Three pages, about ten minutes</h2>
+    <p class="mute" data-zh="每页都有一个开始按钮，因为浏览器在你点击前不让出声。最好戴耳机。">Each page has a start button, because browsers block sound until you click. Use headphones if you can.</p>
     <div class="steps">
-      <a href="demos/balatro.html"><span class="n">01</span><span class="t">Balatro music machine<small>Switch between blind, shop, packs and boss. The melody carries straight through. Listen for Game Over slowing the tape.</small></span><span class="go">Play →</span></a>
-      <a href="demos/mouse-bend.html"><span class="n">02</span><span class="t">Mouse bend lab<small>Bend the pitch with the mouse, then switch on coprime loop lengths and slow drift until the loop point disappears.</small></span><span class="go">Play →</span></a>
-      <a href="examples/homepage.html"><span class="n">03</span><span class="t">Homepage starter<small>A plain homepage with an endless soundtrack, about 75 lines on top of endless-loop.js.</small></span><span class="go">Open →</span></a>
+      <a href="demos/balatro.html"><span class="n">01</span><span class="t" data-zh="小丑牌音乐机<small>在盲注、商店、卡包和 Boss 之间切换，旋律一直连着。注意听 Game Over 时磁带变慢。</small>">Balatro music machine<small>Switch between blind, shop, packs and boss. The melody carries straight through. Listen for Game Over slowing the tape.</small></span><span class="go" data-zh="试玩 →">Play →</span></a>
+      <a href="demos/mouse-bend.html"><span class="n">02</span><span class="t" data-zh="鼠标调音实验室<small>用鼠标弯曲音高，再打开互质循环长度和缓慢漂移，直到听不出循环点。</small>">Mouse bend lab<small>Bend the pitch with the mouse, then switch on coprime loop lengths and slow drift until the loop point disappears.</small></span><span class="go" data-zh="试玩 →">Play →</span></a>
+      <a href="examples/homepage.html"><span class="n">03</span><span class="t" data-zh="主页模板<small>一个带无限配乐的极简主页，在 endless-loop.js 之上约 75 行。</small>">Homepage starter<small>A plain homepage with an endless soundtrack, about 75 lines on top of endless-loop.js.</small></span><span class="go" data-zh="打开 →">Open →</span></a>
     </div>
   </section>
   <section class="section" id="how">
     <div class="col">
-      <h2>One signal chain behind both</h2>
-      <p class="mute">Render once, loop forever, and steer everything from a few control values per frame.</p>
+      <h2 data-zh="两者背后是同一条信号链">One signal chain behind both</h2>
+      <p class="mute" data-zh="只渲染一次，永远循环，每帧用几个控制值驱动全部声音。">Render once, loop forever, and steer everything from a few control values per frame.</p>
     </div>
-    <figure class="wide"><img src="docs/signal-chain.png" alt="Signal chain: offline render with tail wrap, synced looping sources, per-stem gains, master and reverb, and per-frame control from pointer, rate and scene">
-      <figcaption>Figure 1. The same chain drives the Balatro demo, the mouse lab and the starter.</figcaption></figure>
+    <figure class="wide"><img src="docs/signal-chain.png" data-zh-alt="信号链：离线渲染并回卷尾音，同步循环的音源，分轨音量，总线与混响，每帧由指针、速率和场景控制" alt="Signal chain: offline render with tail wrap, synced looping sources, per-stem gains, master and reverb, and per-frame control from pointer, rate and scene">
+      <figcaption data-zh="图 1. 小丑牌 demo、鼠标实验室和主页模板共用这条链路。">Figure 1. The same chain drives the Balatro demo, the mouse lab and the starter.</figcaption></figure>
     <div class="col">
-      <h3>1. Fold the tail</h3>
-      <p>Render every stem to the same length. Add the reverb tail that rings past the end onto the start, so the seam sounds like any other moment.</p>
-      <h3>2. Never restart</h3>
-      <p>Start all stems at one shared time with <code>loop = true</code>. A scene change only fades volumes, so the playhead never jumps.</p>
-      <h3>3. Bend the tape</h3>
-      <p>Change <code>playbackRate</code> or <code>detune</code>. Pitch and speed move together like tape, and the loop length keeps shifting.</p>
-      <p><a href="https://github.com/JonasJoe233/endless-loop-music#part-2--balatros-music-machine-from-the-source">Read the full write-up with source references</a></p>
+      <h3 data-zh="1. 回卷尾音">1. Fold the tail</h3>
+      <p data-zh="把每条分轨渲染成同样长度。超出结尾的混响尾音叠回开头，接缝处就和其他时刻没有区别。">Render every stem to the same length. Add the reverb tail that rings past the end onto the start, so the seam sounds like any other moment.</p>
+      <h3 data-zh="2. 永不重启">2. Never restart</h3>
+      <p data-zh="所有分轨在同一时刻启动，设 <code>loop = true</code>。切场景只淡入淡出音量，播放头从不跳。">Start all stems at one shared time with <code>loop = true</code>. A scene change only fades volumes, so the playhead never jumps.</p>
+      <h3 data-zh="3. 弯曲磁带">3. Bend the tape</h3>
+      <p data-zh="改 <code>playbackRate</code> 或 <code>detune</code>。音高和速度像磁带一样一起变，循环长度也随之不断变化。">Change <code>playbackRate</code> or <code>detune</code>. Pitch and speed move together like tape, and the loop length keeps shifting.</p>
+      <p><a href="https://github.com/JonasJoe233/endless-loop-music#part-2--balatros-music-machine-from-the-source" data-zh-href="https://github.com/JonasJoe233/endless-loop-music/blob/main/README.zh-CN.md#第二部分小丑牌的音乐机制来自源码" data-zh="阅读完整拆解和源码出处">Read the full write-up with source references</a></p>
     </div>
   </section>
 
   <section class="col section" id="use">
-    <h2>Add it to your homepage</h2>
-    <p>Copy <code>src/endless-loop.js</code> next to your page. Export your stems from a DAW with a few seconds of tail, then:</p>
+    <h2 data-zh="用到你的主页上">Add it to your homepage</h2>
+    <p data-zh="把 <code>src/endless-loop.js</code> 复制到页面旁边。从 DAW 导出分轨，每条多留几秒尾音，然后：">Copy <code>src/endless-loop.js</code> next to your page. Export your stems from a DAW with a few seconds of tail, then:</p>
 <pre>&lt;button id="play"&gt;▶ Play sound&lt;/button&gt;
 &lt;script type="module"&gt;
 import { createEndlessLoop } from './endless-loop.js';
@@ -91,26 +92,26 @@ import { createEndlessLoop } from './endless-loop.js';
 const loop = await createEndlessLoop({
   stems: [
     { url: 'pad.mp3',   loopSeconds: 9.6 },
-    { url: 'drums.mp3', loopSeconds: 9.6, gain: 0 },  <span class="c">// silent until a scene turns it up</span>
+    { url: 'drums.mp3', loopSeconds: 9.6, gain: 0 },  <span class="c" data-zh="// 先静音，等场景把它调大">// silent until a scene turns it up</span>
   ],
-  rate: 0.85,   <span class="c">// optional Balatro-style slowdown</span>
-  range: 200,   <span class="c">// max mouse bend in cents</span>
+  rate: 0.85,   <span class="c" data-zh="// 可选：小丑牌式减速">// optional Balatro-style slowdown</span>
+  range: 200,   <span class="c" data-zh="// 鼠标最大弯音，单位音分">// max mouse bend in cents</span>
 });
 
 document.getElementById('play').onclick = () => { loop.start(); loop.followPointer(); };
-<span class="c">// later: loop.setScene([1, 1]); loop.setRate(0.5); loop.mute(true);</span>
+<span class="c" data-zh="// 之后可以：loop.setScene([1, 1]); loop.setRate(0.5); loop.mute(true);">// later: loop.setScene([1, 1]); loop.setRate(0.5); loop.mute(true);</span>
 &lt;/script&gt;</pre>
     <div class="links">
-      <a class="btn" href="examples/homepage.html">▶ Open the starter</a>
-      <a href="https://github.com/JonasJoe233/endless-loop-music/blob/main/src/endless-loop.js">View endless-loop.js</a>
-      <a href="https://github.com/JonasJoe233/endless-loop-music#use-it-on-your-homepage">DAW tips and an AI prompt</a>
+      <a class="btn" href="examples/homepage.html" data-zh="▶ 打开主页模板">▶ Open the starter</a>
+      <a href="https://github.com/JonasJoe233/endless-loop-music/blob/main/src/endless-loop.js" data-zh="查看 endless-loop.js">View endless-loop.js</a>
+      <a href="https://github.com/JonasJoe233/endless-loop-music#use-it-on-your-homepage" data-zh-href="https://github.com/JonasJoe233/endless-loop-music/blob/main/README.zh-CN.md#用到你的个人主页" data-zh="DAW 导出技巧和 AI 提示词">DAW tips and an AI prompt</a>
     </div>
   </section>
 </main>
 
 <footer class="site-foot">
-  <p>By Jonas Qiao · MIT license · every sound is synthesized in your browser.</p>
-  <p>Not affiliated with Balatro, LocalThunk or Playstack. No game assets included.</p>
+  <p data-zh="作者 Jonas Qiao · MIT 许可 · 所有声音都在你的浏览器里合成。">By Jonas Qiao · MIT license · every sound is synthesized in your browser.</p>
+  <p data-zh="与小丑牌、LocalThunk、Playstack 无关。不含任何游戏素材。">Not affiliated with Balatro, LocalThunk or Playstack. No game assets included.</p>
 </footer>
 </body>
 </html>
