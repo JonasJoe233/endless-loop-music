@@ -2,7 +2,7 @@
 
 **How a short loop can sound like it never ends.** Two browser demos, one small module, and the mechanism behind Balatro's music, checked against the game's source.
 
-[中文版](README.zh-CN.md) · [Live demos](https://YOUR_GH_USER.github.io/endless-loop-music/)
+[中文版](README.zh-CN.md) · [Live demos](https://JonasJoe233.github.io/endless-loop-music/)
 
 ![One signal chain behind both demos](docs/signal-chain.png)
 
@@ -142,7 +142,7 @@ API: `start()`, `followPointer()`, `setBend(cents)`, `setRate(rate)`, `setScene(
 
 **A prompt for your AI coding tool**
 
-> Add background music to my homepage using `endless-loop.js` from github.com/YOUR_GH_USER/endless-loop-music. Load my stems `a.mp3` and `b.mp3` (each loop is N seconds; the files include a tail). Start audio on a visible play button, follow the pointer for pitch bend with the default curve, add a mute toggle, and fade in stem `b` when the visitor scrolls past the hero section.
+> Add background music to my homepage using `endless-loop.js` from github.com/JonasJoe233/endless-loop-music. Load my stems `a.mp3` and `b.mp3` (each loop is N seconds; the files include a tail). Start audio on a visible play button, follow the pointer for pitch bend with the default curve, add a mute toggle, and fade in stem `b` when the visitor scrolls past the hero section.
 
 ## What is verified and what is mine
 

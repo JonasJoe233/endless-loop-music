@@ -2,7 +2,7 @@
 
 **一段很短的循环，怎么听起来永远不结束。** 本仓库有两个浏览器 demo 和一个小模块。小丑牌（Balatro）的音乐机制也在这里，已对照游戏源码核实。
 
-[English](README.md) · [在线 demo](https://YOUR_GH_USER.github.io/endless-loop-music/)
+[English](README.md) · [在线 demo](https://JonasJoe233.github.io/endless-loop-music/)
 
 ![两个 demo 共用一条信号链](docs/signal-chain.png)
 
@@ -142,7 +142,7 @@ API：`start()`、`followPointer()`、`setBend(cents)`、`setRate(rate)`、`setS
 
 **给 AI 编程工具的 prompt**
 
-> Add background music to my homepage using `endless-loop.js` from github.com/YOUR_GH_USER/endless-loop-music. Load my stems `a.mp3` and `b.mp3` (each loop is N seconds; the files include a tail). Start audio on a visible play button, follow the pointer for pitch bend with the default curve, add a mute toggle, and fade in stem `b` when the visitor scrolls past the hero section.
+> Add background music to my homepage using `endless-loop.js` from github.com/JonasJoe233/endless-loop-music. Load my stems `a.mp3` and `b.mp3` (each loop is N seconds; the files include a tail). Start audio on a visible play button, follow the pointer for pitch bend with the default curve, add a mute toggle, and fade in stem `b` when the visitor scrolls past the hero section.
 
 ## 哪些已核实，哪些是我的选择
 
