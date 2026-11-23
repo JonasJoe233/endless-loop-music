@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Balatro music machine · replica</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+  /* the mixer is one .stage; game colors stay inside it */
+  .mixer{margin-top:32px;padding:24px}
+  .mixer .grp{padding:16px 0;border-top:1px solid var(--felt-line)}
+  .mixer > .grp:first-of-type{border-top:0;padding-top:0}
+  .mixer .lbl{color:var(--felt-mute);margin:0 0 10px}
+  .mixer .lbl b{color:var(--felt-ink)}
+  .mixer .two{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
+  .mixer .two .grp{border-top:1px solid var(--felt-line)}
+  @media(max-width:760px){.mixer{padding:18px}.mixer .two{grid-template-columns:1fr}}
+  .mixer button{font:inherit;color:var(--felt-ink);background:#2a4b3e;border:0;border-bottom:3px solid rgba(0,0,0,.35);border-radius:6px;padding:7px 10px;cursor:pointer}
+  .mixer button:hover{filter:brightness(1.15)}
+  .mixer button:active{transform:translateY(2px);border-bottom-width:1px}
+  .mixer button.on{background:var(--red)}
+  #start{width:100%;margin-bottom:20px;border-bottom:0;background:var(--act);font-weight:600}
+  .states{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .states button{padding:8px 4px;line-height:1.3}
+  .states button small{display:block;opacity:.7;font-size:inherit}
+  @media(max-width:560px){.states{grid-template-columns:repeat(3,1fr)}}
+  .row{display:flex;align-items:center;gap:10px;margin:8px 0;flex-wrap:wrap}
+  .row label{width:104px;flex:none;color:var(--felt-mute)}
+  .row input[type=range]{flex:1;min-width:120px;accent-color:var(--red)}
+  .row output{width:64px;text-align:right;font-variant-numeric:tabular-nums}
+  .meters{display:grid;gap:6px}
+  .meter{display:grid;grid-template-columns:112px 1fr 40px;align-items:center;gap:8px}
+  .bar{height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;border-radius:4px}
+  .meter span:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--felt-mute)}
+  .stats{font-variant-numeric:tabular-nums;line-height:1.9;color:var(--felt-mute)}
+  .stats b{color:var(--gold);font-weight:600}
+  .pos{height:4px;background:rgba(255,255,255,.08);border-radius:4px;margin-top:8px;overflow:hidden}
+  .pos i{display:block;height:100%;width:0;background:var(--blue)}
+  .explain{margin-top:24px}
+  @media(max-width:760px){.row{flex-wrap:nowrap}.row label{width:auto;flex:0 1 auto}.row input[type=range]{min-width:0}.row output{width:44px;flex:none}}
+</style>
+</head>
+<body>
+<header class="site-nav">
+  <a class="brand" href="../index.html">∞ <span>endless-loop-music</span></a>
+  <nav aria-label="Site">
+    <a href="../index.html">Overview</a>
+    <a href="../demos/balatro.html" aria-current="page"><small>01</small>Balatro</a>
+    <a href="../demos/mouse-bend.html"><small>02</small>Mouse bend</a>
+    <a href="../examples/homepage.html"><small>03</small>Starter</a>
+  </nav>
+  <div class="ext"><a href="https://github.com/YOUR_GH_USER/endless-loop-music/blob/main/README.zh-CN.md">中文</a><a class="gh" href="https://github.com/YOUR_GH_USER/endless-loop-music">GitHub</a></div>
+</header>
+<section class="page-intro">
+  <div class="step">Step 1 of 3 · for Balatro fans</div>
+  <h1>Balatro's music machine, rebuilt in Web Audio</h1>
+  <p>Every rule here follows the game's <code>engine/sound_manager.lua</code> and <code>modulate_sound()</code>. The music is an original piece with the same structure, not the soundtrack. Press start, switch to Shop and back, then hit Game Over.</p>
+</section>
+
+<div class="wide">
+<div class="stage mixer">
+  <button id="start">▶ Start sound</button>
+
+  <div class="grp">
+    <p class="lbl"><b>① Game state</b> → desired_track</p>
+    <div class="states" id="states"></div>
+  </div>
+
+  <div class="two">
+    <div class="grp">
+      <p class="lbl"><b>② Pitch</b> = original_pitch × PITCH_MOD</p>
+      <div class="row"><label>original_pitch</label><input id="pitch" type="range" min="0.5" max="1" step="0.01" value="0.7"><output id="pitchOut">0.70</output></div>
+      <div class="row"><button id="ab">A/B: original speed 1.0</button><button id="over">Game Over</button></div>
+    </div>
+    <div class="grp">
+      <p class="lbl"><b>③ Hand score</b> → ambient layers</p>
+      <div class="row"><label>Score / target</label><input id="score" type="range" min="-1" max="4" step="0.01" value="-1"><output id="scoreOut">0.1×</output></div>
+      <div class="meters" id="ambMeters"></div>
+    </div>
+    <div class="grp">
+      <p class="lbl"><b>Track volumes</b> (live)</p>
+      <div class="meters" id="trackMeters"></div>
+    </div>
+    <div class="grp">
+      <p class="lbl"><b>Playback</b></p>
+      <div class="stats" id="stats">Not started</div>
+      <div class="pos"><i id="posBar"></i></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<section class="col explain">
+  <h3>① State changes move volumes, not the playhead</h3>
+  <p>Five full tracks start at the same moment and never stop. Every frame the desired track moves toward 1 by <code>dt×3</code> and the others toward 0, a time constant of about 0.33 s. The melody keeps going across scene changes instead of restarting.</p>
+  <h3>② Everything plays slow</h3>
+  <p>All music in the game plays at <code>per = 0.7</code>: 30% slower and about 6.2 semitones lower. On Game Over, <code>PITCH_MOD</code> slides toward 0.5, about 63% of the way per second. That is the tape-stop you hear.</p>
+  <h3>③ Your score adds layers</h3>
+  <p>Organ volume is <code>0.1 × log₅(score / target)</code>, capped at 0.4, and only above the target. Fire follows the scoring-flame intensity, approximated here from the score ratio. Both layers sit outside the music and ignore PITCH_MOD.</p>
+</section>
+<div class="pager"><a class="prev" href="../index.html"><small>← Overview</small>The story and the signal chain</a><a class="next" href="mouse-bend.html"><small>Step 2 →</small>Mouse bend lab</a></div>
+<script>
+/* ================= score: 16 bars, D dorian / minor, written at the unslowed 100 BPM ================= */
+const SR = 32000, BPM = 100, BEAT = 60 / BPM, BARS = 16, BEATS = BARS * 4;
+const LEN = Math.round(BEATS * BEAT * SR), TAIL = Math.round(3 * SR);
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+
+// one chord per bar: [bass, rootless voicing]. Bar 16 ends on A7 and resolves to Dm9 across the loop seam
+const PROG = [
+  [38,[53,57,60,64]], [38,[53,57,60,64]], [46,[53,57,58,62]], [45,[55,58,61,64]],   // Dm9 Dm9 Bbmaj7 A7b9
+  [38,[53,57,60,64]], [38,[53,57,60,64]], [43,[53,57,58,62]], [45,[55,57,61,65]],   // Dm9 Dm9 Gm9 A7b13
+  [46,[53,57,58,62]], [45,[55,60,64,67]], [43,[53,57,58,62]], [41,[53,57,60,64]],   // Bbmaj7 Am7 Gm9 Fmaj7
+  [40,[52,55,58,62]], [45,[55,57,61,64]], [38,[53,57,60,64]], [45,[55,57,61,64]]    // Em7b5 A7 Dm9 A7
+];
+// melody: [beat, MIDI, duration in beats]
+const MELODY = [
+  [0,69,1],[1,72,.5],[1.5,74,1.5],[3,76,.5],[3.5,77,.5],  [4,76,1],[5,74,.5],[5.5,72,.5],[6,69,2],
+  [8,77,1],[9,76,.5],[9.5,74,1.5],[11,69,1],              [12,73,1.5],[13.5,76,.5],[14,79,1],[15,70,1],
+  [16,69,.5],[16.5,74,.5],[17,77,1],[18,76,.5],[18.5,74,.5],[19,72,1],  [20,74,3],
+  [24,70,1],[25,74,.5],[25.5,77,1],[26.5,81,1.5],         [28,79,1],[29,77,1],[30,76,1],[31,73,1],
+  [32,74,2],[34,77,1],[35,81,1],                          [36,79,1.5],[37.5,76,.5],[38,72,2],
+  [40,70,1],[41,74,1],[42,77,1],[43,81,1],                [44,79,.5],[44.5,81,.5],[45,76,3],
+  [48,74,1],[49,70,1],[50,67,2],                          [52,69,1],[53,73,1],[54,76,1],[55,79,1],
+  [56,77,1.5],[57.5,76,.5],[58,74,2],                     [60,76,2],[62,73,2]
+];
+const swing = b => (b % 1 === 0.5) ? b + 0.06 : b;   // light swing: offbeats a little late
+
+/* ================= synths (used inside an OfflineAudioContext) ================= */
+function adsr(oc, t, a, peak, hold, rel) {
+  const g = oc.createGain(), p = g.gain;
+  p.setValueAtTime(0, t); p.linearRampToValueAtTime(peak, t + a);
+  p.setValueAtTime(peak, t + a + hold); p.exponentialRampToValueAtTime(1e-4, t + a + hold + rel);
+  return g;
+}
+let NOISE = null;
+function noise(oc) {
+  if (!NOISE) { NOISE = oc.createBuffer(1, SR, SR); const d = NOISE.getChannelData(0); for (let i = 0; i < SR; i++) d[i] = Math.random() * 2 - 1; }
+  return NOISE;
+}
+const SYN = {
+  // drawbar organ: harmonic sines + 6 Hz vibrato for a Leslie feel
+  organ(oc, out, t, m, d, v = 0.035) {
+    const g = adsr(oc, t, 0.03, v, d, 0.25), lfo = oc.createOscillator(), lg = oc.createGain();
+    lfo.frequency.value = 6.1; lg.gain.value = 9; lfo.connect(lg); lfo.start(t); lfo.stop(t + d + 0.4);
+    [[1, 1], [2, .7], [3, .35], [4, .3], [6, .12]].forEach(([h, a]) => {
+      const o = oc.createOscillator(), og = oc.createGain(); o.frequency.value = hz(m) * h; og.gain.value = a;
+      lg.connect(o.detune); o.connect(og).connect(g); o.start(t); o.stop(t + d + 0.4);
+    });
+    g.connect(out);
+  },
+  bass(oc, out, t, m, d) {
+    const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 600;
+    const g = adsr(oc, t, 0.005, 0.32, d * 0.6, 0.12);
+    const o = oc.createOscillator(); o.type = 'triangle'; o.frequency.value = hz(m);
+    const s = oc.createOscillator(); s.frequency.value = hz(m) / 2; const sg = oc.createGain(); sg.gain.value = .5;
+    o.connect(lp); s.connect(sg).connect(lp); lp.connect(g).connect(out);
+    o.start(t); s.start(t); o.stop(t + d + .2); s.stop(t + d + .2);
+  },
+  // lead: square wave, delayed vibrato, a little glide
+  lead(oc, out, t, m, d) {
+    const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200; lp.Q.value = 2;
+    const g = adsr(oc, t, 0.02, 0.07, Math.max(0, d - 0.05), 0.18);
+    const o = oc.createOscillator(); o.type = 'square';
+    o.frequency.setValueAtTime(hz(m - 0.4), t); o.frequency.exponentialRampToValueAtTime(hz(m), t + 0.05);
+    const lfo = oc.createOscillator(), lg = oc.createGain(); lfo.frequency.value = 5.2;
+    lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(18, t + Math.min(d, 0.5));
+    lfo.connect(lg).connect(o.detune); o.connect(lp).connect(g).connect(out);
+    o.start(t); lfo.start(t); o.stop(t + d + .3); lfo.stop(t + d + .3);
+  },
+  pluck(oc, out, t, m) {
+    const g = adsr(oc, t, 0.003, 0.06, 0.01, 0.35);
+    const o = oc.createOscillator(); o.type = 'triangle'; o.frequency.value = hz(m);
+    o.connect(g).connect(out); o.start(t); o.stop(t + .45);
+  },
+  // bell: inharmonic partials
+  bell(oc, out, t, m) {
+    [[1, .05, 2.6], [2.76, .02, 1.2], [5.4, .01, .6]].forEach(([r, a, rel]) => {
+      const g = adsr(oc, t, 0.002, a, 0.005, rel); const o = oc.createOscillator();
+      o.frequency.value = hz(m) * r; o.connect(g).connect(out); o.start(t); o.stop(t + rel + .1);
+    });
+  },
+  // space pad: slow-attack detuned saws + lowpass
+  space(oc, out, t, m, d) {
+    const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1300;
+    const g = adsr(oc, t, 1.2, 0.022, Math.max(0, d - 1.2), 1.5);
+    [-11, 0, 11].forEach(c => { const o = oc.createOscillator(); o.type = 'sawtooth'; o.frequency.value = hz(m); o.detune.value = c;
+      o.connect(lp); o.start(t); o.stop(t + d + 1.6); });
+    lp.connect(g).connect(out);
+  },
+  kick(oc, out, t) {
+    const o = oc.createOscillator(); o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(40, t + .16);
+    const g = adsr(oc, t, .002, .6, .01, .25); o.connect(g).connect(out); o.start(t); o.stop(t + .35);
+  },
+  snare(oc, out, t) {
+    const n = oc.createBufferSource(); n.buffer = noise(oc);
+    const bp = oc.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1700; bp.Q.value = .7;
+    const g = adsr(oc, t, .001, .2, .01, .15); n.connect(bp).connect(g).connect(out); n.start(t, Math.random() * .5); n.stop(t + .3);
+  },
+  hat(oc, out, t, v) {
+    const n = oc.createBufferSource(); n.buffer = noise(oc);
+    const hp = oc.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7500;
+    const g = adsr(oc, t, .001, v, .004, .045); n.connect(hp).connect(g).connect(out); n.start(t, Math.random() * .5); n.stop(t + .1);
+  }
+};
+/* ================= layers: each layer is 16 bars of notes ================= */
+const LAYERS = {
+  organ(oc, o) { PROG.forEach(([, v], i) => v.forEach(m => SYN.organ(oc, o, i * 4 * BEAT, m, 4 * BEAT - .1))); },
+  bass(oc, o) {
+    PROG.forEach(([r], i) => {
+      const next = PROG[(i + 1) % BARS][0], b = i * 4;
+      [[0, r, 1.2], [1.5, r, .4], [2, r + 7, .9], [3, r + 12, .4], [3.5, next + (next > r ? -1 : 1), .4]]
+        .forEach(([t, m, d]) => SYN.bass(oc, o, swing(b + t) * BEAT, m, d * BEAT));
+    });
+  },
+  drums(oc, o) {
+    for (let bar = 0; bar < BARS; bar++) {
+      const b = bar * 4;
+      [0, 2.5].concat(bar % 4 === 3 ? [3.5] : []).forEach(t => SYN.kick(oc, o, swing(b + t) * BEAT));
+      [1, 3].forEach(t => SYN.snare(oc, o, (b + t) * BEAT));
+      for (let e = 0; e < 8; e++) SYN.hat(oc, o, swing(b + e / 2) * BEAT, e % 2 ? .035 : .06);
+    }
+  },
+  lead(oc, o) { MELODY.forEach(([t, m, d]) => SYN.lead(oc, o, swing(t) * BEAT, m, d * BEAT)); },
+  arp(oc, o) {
+    const shape = [0, 1, 2, 3, 2, 1, 3, 2];
+    PROG.forEach(([, v], i) => shape.forEach((k, e) => SYN.pluck(oc, o, swing(i * 4 + e / 2) * BEAT, v[k] + 12)));
+  },
+  bells(oc, o) {
+    PROG.forEach(([, v], i) => {
+      SYN.bell(oc, o, i * 4 * BEAT, v[3] + 24);
+      if (i % 2) SYN.bell(oc, o, (i * 4 + 2.5) * BEAT, v[1] + 24);
+    });
+  },
+  space(oc, o) {
+    for (let i = 0; i < BARS; i += 2) PROG[i][1].forEach(m => SYN.space(oc, o, i * 4 * BEAT, m + 12, 8 * BEAT - .2));
+  }
+};
+
+async function renderLayer(name) {
+  const oc = new OfflineAudioContext(1, LEN + TAIL, SR);
+  const out = oc.createGain(); out.connect(oc.destination);
+  LAYERS[name](oc, out);
+  const d = (await oc.startRendering()).getChannelData(0);
+  for (let i = 0; i < TAIL; i++) d[i] += d[LEN + i];     // fold the tail back onto the start: no gap at the seam
+  return d.slice(0, LEN);
+}
+// distorted organ for the Boss track: tanh soft clip + one-pole lowpass on samples
+function distort(src) {
+  const d = new Float32Array(src.length); let y = 0;
+  for (let i = src.length - 2000; i < src.length; i++) y += (Math.tanh(src[i] * 9) * .22 - y) * .35;  // pre-warm the filter with the end of the loop so the seam stays continuous
+  for (let i = 0; i < src.length; i++) { y += (Math.tanh(src[i] * 9) * .22 - y) * .35; d[i] = y; }
+  return d;
+}
+
+/* ================= five full tracks = different mixes of the same layers ================= */
+const TRACKS = [   // layer order: organ dorg bass drums lead arp bells space
+  { code: 'music1', name: 'Blind', sub: 'music1', color: '#009dff', mix: [.8, 0, .9, .65, .85, .25, .2, .15] },
+  { code: 'music2', name: 'Tarot/Spectral', sub: 'music2', color: '#8867a5', mix: [.3, 0, .5, 0, .45, .75, .9, .55] },
+  { code: 'music3', name: 'Planet pack', sub: 'music3', color: '#4bc292', mix: [0, 0, .55, 0, 0, .3, .7, 1.1] },
+  { code: 'music4', name: 'Shop', sub: 'music4', color: '#fda200', mix: [.6, 0, 1, .9, .6, .85, .3, .1] },
+  { code: 'music5', name: 'Boss Blind', sub: 'music5', color: '#fe5f55', mix: [.15, 1, 1.25, 1.15, 0, .2, 0, .35] }
+];
+const LAYER_ORDER = ['organ', 'dorg', 'bass', 'drums', 'lead', 'arp', 'bells', 'space'];
+
+async function buildTracks(progress) {
+  const L = {}, names = Object.keys(LAYERS);
+  for (let i = 0; i < names.length; i++) { progress(`Rendering layer ${i + 1}/${names.length}: ${names[i]}`); L[names[i]] = await renderLayer(names[i]); }
+  L.dorg = distort(L.organ);
+  const mixes = TRACKS.map(t => {
+    const d = new Float32Array(LEN);
+    LAYER_ORDER.forEach((n, k) => { const a = t.mix[k]; if (a) { const s = L[n]; for (let i = 0; i < LEN; i++) d[i] += s[i] * a; } });
+    return d;
+  });
+  return mixes.map(d => {                                      // normalize each track to its own peak so switching keeps loudness similar
+    let peak = 0; for (let i = 0; i < LEN; i++) peak = Math.max(peak, Math.abs(d[i]));
+    const k = .8 / peak; for (let i = 0; i < LEN; i++) d[i] *= k; const b = new AudioBuffer({ length: LEN, sampleRate: SR, numberOfChannels: 1 }); b.copyToChannel(d, 0); return b; });
+}
+
+/* ================= ambient layers: organ drone and fire (crossfaded into seamless loops) ================= */
+function seamless(d, fade) {
+  const n = d.length - fade, out = new Float32Array(n);
+  for (let i = 0; i < n; i++) out[i] = d[i];
+  for (let i = 0; i < fade; i++) { const a = i / fade; out[i] = d[i] * Math.sqrt(a) + d[n + i] * Math.sqrt(1 - a); }
+  return out;
+}
+async function renderAmbient() {
+  const dur = 9, fade = SR;
+  let oc = new OfflineAudioContext(1, dur * SR, SR), o = oc.createGain(); o.connect(oc.destination);
+  [50, 57, 62, 65, 69].forEach(m => SYN.organ(oc, o, 0, m, dur, .05));   // sustained D minor chord
+  const organ = seamless((await oc.startRendering()).getChannelData(0), fade);
+  oc = new OfflineAudioContext(1, dur * SR, SR); o = oc.createGain(); o.connect(oc.destination);
+  const n = oc.createBufferSource(); n.buffer = noise(oc); n.loop = true;
+  const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500;
+  const rg = oc.createGain(); rg.gain.value = .25; n.connect(lp).connect(rg).connect(o); n.start(0);
+  for (let t = 0.05; t < dur; t += Math.random() * .09 + .01) {         // random crackles
+    const s = oc.createBufferSource(); s.buffer = noise(oc);
+    const bp = oc.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500 + Math.random() * 3500;
+    const g = adsr(oc, t, .001, Math.random() * .5, .002, .02); s.connect(bp).connect(g).connect(o); s.start(t, Math.random() * .5); s.stop(t + .05);
+  }
+  const fire = seamless((await oc.startRendering()).getChannelData(0), fade);
+  const mk = d => { const b = new AudioBuffer({ length: d.length, sampleRate: SR, numberOfChannels: 1 }); b.copyToChannel(d, 0); return b; };
+  return { organ: mk(organ), fire: mk(fire) };
+}
+/* ================= runtime: per-frame port of modulate_sound() + SET_SFX() ================= */
+const G = { desired: 'music1', PITCH_MOD: 1, original_pitch: 0.7, gameOver: false, ratio: 0.1, pos: 0 };
+const ORIGINAL_VOLUME = 0.6;                  // args.vol = 0.6 in RESTART_MUSIC
+let ctx, master, live = [], amb = {}, lastT = 0, started = false;
+
+function reverb(ctx) {                        // generated stereo impulse response: space and width for mono tracks
+  const len = ctx.sampleRate * 2.2, ir = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); }
+  const cv = ctx.createConvolver(); cv.buffer = ir; return cv;
+}
+
+async function start() {
+  ctx = new AudioContext(); await ctx.resume();
+  const say = s => document.getElementById('stats').textContent = s;
+  const buffers = await buildTracks(say);
+  say('Rendering ambient layers…'); const ab = await renderAmbient();
+
+  master = ctx.createGain(); master.gain.value = 0.9;
+  const dry = ctx.createGain(), wet = ctx.createGain(), rv = reverb(ctx);
+  dry.gain.value = 0.85; wet.gain.value = 0.28;
+  master.connect(dry).connect(ctx.destination); master.connect(rv).connect(wet).connect(ctx.destination);
+
+  const at = ctx.currentTime + 0.1;
+  live = TRACKS.map((t, i) => {               // all five tracks start together, as in RESTART_MUSIC
+    const src = ctx.createBufferSource(); src.buffer = buffers[i]; src.loop = true;
+    src.playbackRate.value = G.original_pitch * G.PITCH_MOD;
+    const g = ctx.createGain();
+    const cur = t.code === G.desired ? 1 : 0;   // initial current_volume: 1 for the desired track, 0 for the rest
+    g.gain.value = cur * ORIGINAL_VOLUME;
+    src.connect(g).connect(master); src.start(at);
+    return { ...t, src, g, cur };
+  });
+  // ambient: fixed per, no PITCH_MOD (the non-music branch of SET_SFX only uses original_pitch)
+  const mkAmb = (buf, per) => { const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true; s.playbackRate.value = per;
+    const g = ctx.createGain(); g.gain.value = 0; s.connect(g).connect(master); s.start(at); return { g, vol: 0 }; };
+  amb = { ambientOrgan1: mkAmb(ab.organ, 0.7), ambientFire1: mkAmb(ab.fire, 1.1), ambientFire2: mkAmb(ab.fire, 1.05) };
+  started = true; lastT = performance.now();
+}
+
+function step(dt) {
+  // PITCH_MOD: moves toward its target by dt each frame; target is 0.5 on Game Over
+  G.PITCH_MOD = G.PITCH_MOD * (1 - dt) + dt * (G.gameOver ? 0.5 : 1);
+  const rate = G.original_pitch * G.PITCH_MOD, now = ctx.currentTime;
+  live.forEach(s => {
+    const target = s.code === G.desired ? 1 : 0;
+    s.cur = target * (dt * 3) + (1 - dt * 3) * s.cur;         // original: 1*(dt*3) + (1-(dt*3))*current_volume
+    s.g.gain.setTargetAtTime(s.cur * ORIGINAL_VOLUME, now, 0.015);
+    s.src.playbackRate.setTargetAtTime(rate, now, 0.015);
+  });
+  G.pos = (G.pos + dt * rate) % (LEN / SR);
+
+  // score intensity: organ = max(min(0.4, 0.1*log5(earned/(required+1))), 0)
+  const organ = Math.max(Math.min(0.4, 0.1 * Math.log(G.ratio) / Math.log(5)), 0);
+  const flames = Math.min(1, Math.max(0, Math.log10(Math.max(G.ratio, 1)) / 3));   // approximation: in the game this comes from the scoring flames
+  const tgt = {
+    ambientOrgan1: 0.6 * (100 + 100) / 200 * organ,
+    ambientFire2: 0.9 * (flames > 0.3 ? 1 : flames / 0.3),
+    ambientFire1: 0.8 * (flames > 0.3 ? (flames - 0.3) / 0.7 : 0)
+  };
+  for (const k in amb) { const a = amb[k]; a.vol = a.vol * (1 - dt) + dt * tgt[k]; a.g.gain.setTargetAtTime(a.vol * 0.5, now, 0.02); }
+  return { rate, organ, flames };
+}
+/* ================= UI ================= */
+const $ = id => document.getElementById(id);
+$('states').innerHTML = TRACKS.map(t => `<button data-code="${t.code}">${t.name}<small>${t.sub}</small></button>`).join('');
+const paintStates = () => document.querySelectorAll('[data-code]').forEach(b => b.classList.toggle('on', b.dataset.code === G.desired));
+document.querySelectorAll('[data-code]').forEach(b => b.onclick = () => { G.desired = b.dataset.code; paintStates(); });
+paintStates();
+
+const meter = (id, label, color) => `<div class="meter"><span>${label}</span><div class="bar"><i id="${id}" style="background:${color}"></i></div><span id="${id}v">0</span></div>`;
+$('trackMeters').innerHTML = TRACKS.map(t => meter('m_' + t.code, t.name, t.color)).join('');
+$('ambMeters').innerHTML = meter('m_org', 'Organ 0.7×', '#c9a0ff') + meter('m_f2', 'Fire 2 1.05×', '#ff8a3d') + meter('m_f1', 'Fire 1 1.1×', '#ff4d2e');
+
+$('pitch').oninput = e => { G.original_pitch = +e.target.value; $('pitchOut').textContent = G.original_pitch.toFixed(2); syncAB(); };
+const syncAB = () => $('ab').textContent = G.original_pitch === 1 ? 'A/B: back to game 0.7' : 'A/B: original speed 1.0';
+$('ab').onclick = () => { G.original_pitch = G.original_pitch === 1 ? 0.7 : 1; $('pitch').value = G.original_pitch; $('pitchOut').textContent = G.original_pitch.toFixed(2); syncAB(); };
+$('over').onclick = () => { G.gameOver = !G.gameOver; $('over').classList.toggle('on', G.gameOver); $('over').textContent = G.gameOver ? 'Restart' : 'Game Over'; };
+$('score').oninput = e => { G.ratio = Math.pow(10, +e.target.value); $('scoreOut').textContent = (G.ratio < 10 ? G.ratio.toFixed(1) : Math.round(G.ratio).toLocaleString()) + '×'; };
+
+$('start').onclick = async e => {
+  const b = e.target; b.disabled = true; b.textContent = 'Rendering…';
+  try { await start(); b.textContent = 'Playing: switch states below'; }
+  catch (err) { b.textContent = 'Error: ' + err.message; console.error(err); }
+};
+
+const setBar = (id, v, max = 1) => { $(id).style.width = Math.min(100, v / max * 100) + '%'; $(id + 'v').textContent = v.toFixed(2); };
+function frame(ms) {
+  if (started) {
+    const dt = Math.min(0.1, (ms - lastT) / 1000); lastT = ms;
+    const { rate, organ, flames } = step(dt);
+    live.forEach(s => setBar('m_' + s.code, s.cur));
+    setBar('m_org', amb.ambientOrgan1.vol, 0.4); setBar('m_f2', amb.ambientFire2.vol, 0.9); setBar('m_f1', amb.ambientFire1.vol, 0.8);
+    const cents = 1200 * Math.log2(rate), loopSec = LEN / SR / rate, bar = Math.floor(G.pos / (4 * BEAT)) + 1;
+    $('stats').innerHTML =
+      `PITCH_MOD <b>${G.PITCH_MOD.toFixed(3)}</b> × original_pitch <b>${G.original_pitch.toFixed(2)}</b> = playback rate <b>${rate.toFixed(3)}</b><br>` +
+      `Pitch shift <b>${cents.toFixed(0)}</b> cents (${(cents / 100).toFixed(2)} semitones), tempo <b>${(BPM * rate).toFixed(1)}</b> BPM<br>` +
+      `One 16-bar loop takes <b>${loopSec.toFixed(1)}</b> s, now at bar <b>${bar}</b><br>` +
+      `Organ target <b>${organ.toFixed(2)}</b>, flame intensity <b>${flames.toFixed(2)}</b>`;
+    $('posBar').style.width = (G.pos / (LEN / SR) * 100) + '%';
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

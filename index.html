@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>endless-loop-music · why a short loop can sound endless</title>
+<meta name="description" content="Balatro's music machine and a mouse-reactive homepage, rebuilt in plain Web Audio. Two demos, a starter page and a tiny module.">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .hero{padding-top:96px;padding-bottom:64px}
+  .steps{margin-top:8px}
+  .steps a{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:baseline;padding:16px 0;
+    border-top:1px solid var(--line);text-decoration:none;color:var(--ink)}
+  .steps a:last-child{border-bottom:1px solid var(--line)}
+  .steps .n{font:var(--fs-small) var(--mono);color:var(--mute)}
+  .steps .t{font-weight:600}
+  .steps .t small{display:block;font-weight:400;font-size:var(--fs-small);color:var(--mute);margin-top:2px}
+  .steps .go{color:var(--act);font-weight:600;white-space:nowrap}
+  .steps a:hover .t{text-decoration:underline;text-underline-offset:4px}
+  #how figure{margin-top:32px}
+  @media (max-width:760px){.hero{padding-top:48px;padding-bottom:48px}}
+</style>
+</head>
+<body>
+<header class="site-nav">
+  <a class="brand" href="index.html">∞ <span>endless-loop-music</span></a>
+  <nav aria-label="Site">
+    <a href="index.html" aria-current="page">Overview</a>
+    <a href="demos/balatro.html"><small>01</small>Balatro</a>
+    <a href="demos/mouse-bend.html"><small>02</small>Mouse bend</a>
+    <a href="examples/homepage.html"><small>03</small>Starter</a>
+  </nav>
+  <div class="ext"><a href="https://github.com/YOUR_GH_USER/endless-loop-music/blob/main/README.zh-CN.md">中文</a><a class="gh" href="https://github.com/YOUR_GH_USER/endless-loop-music">GitHub</a></div>
+</header>
+
+<main>
+  <section class="col hero">
+    <div class="eyebrow">Web Audio · no build · no audio files</div>
+    <h1 class="display">Why a short loop can sound endless</h1>
+    <p class="lede">Balatro's soundtrack never seems to start over. Some homepages bend their music as you move the mouse. This site rebuilds both so you can hear each part, then hands you a starter for your own page.</p>
+    <div class="links">
+      <a class="btn" href="demos/balatro.html">▶ Play the Balatro demo</a>
+      <a href="#path">See the three steps</a>
+    </div>
+  </section>
+  <div class="col"><hr class="rule"></div>
+
+  <section class="col section" id="story">
+    <h2>Two things I liked turned out to be one trick</h2>
+    <h3>Balatro: a loop with no seam</h3>
+    <p>I played Balatro for hours and never heard the music end. There is no start and no finish, only new material appearing. The game's source shows why. Five tracks run in sync forever, everything plays at 0.7× speed, and your score adds layers on top.</p>
+    <h3>nays.tech: music that follows the mouse</h3>
+    <p>The homepage <a href="https://nays.tech">nays.tech</a> bends its background loop as the cursor moves up and down. It feels alive and costs a few lines of code: a dead zone in the middle, a smoothstep curve, ±200 cents at the edges.</p>
+    <p class="note">Both keep the audio running and never restart it. They change only volume, speed and pitch. That one rule is what hides the loop.</p>
+  </section>
+
+  <section class="col section" id="path">
+    <h2>Three pages, about ten minutes</h2>
+    <p class="mute">Each page has a start button, because browsers block sound until you click. Use headphones if you can.</p>
+    <div class="steps">
+      <a href="demos/balatro.html"><span class="n">01</span><span class="t">Balatro music machine<small>Switch between blind, shop, packs and boss. The melody carries straight through. Listen for Game Over slowing the tape.</small></span><span class="go">Play →</span></a>
+      <a href="demos/mouse-bend.html"><span class="n">02</span><span class="t">Mouse bend lab<small>Bend the pitch with the mouse, then switch on coprime loop lengths and slow drift until the loop point disappears.</small></span><span class="go">Play →</span></a>
+      <a href="examples/homepage.html"><span class="n">03</span><span class="t">Homepage starter<small>A plain homepage with an endless soundtrack, about 75 lines on top of endless-loop.js.</small></span><span class="go">Open →</span></a>
+    </div>
+  </section>
+  <section class="section" id="how">
+    <div class="col">
+      <h2>One signal chain behind both</h2>
+      <p class="mute">Render once, loop forever, and steer everything from a few control values per frame.</p>
+    </div>
+    <figure class="wide"><img src="docs/signal-chain.png" alt="Signal chain: offline render with tail wrap, synced looping sources, per-stem gains, master and reverb, and per-frame control from pointer, rate and scene">
+      <figcaption>Figure 1. The same chain drives the Balatro demo, the mouse lab and the starter.</figcaption></figure>
+    <div class="col">
+      <h3>1. Fold the tail</h3>
+      <p>Render every stem to the same length. Add the reverb tail that rings past the end onto the start, so the seam sounds like any other moment.</p>
+      <h3>2. Never restart</h3>
+      <p>Start all stems at one shared time with <code>loop = true</code>. A scene change only fades volumes, so the playhead never jumps.</p>
+      <h3>3. Bend the tape</h3>
+      <p>Change <code>playbackRate</code> or <code>detune</code>. Pitch and speed move together like tape, and the loop length keeps shifting.</p>
+      <p><a href="https://github.com/YOUR_GH_USER/endless-loop-music#part-2--balatros-music-machine-from-the-source">Read the full write-up with source references</a></p>
+    </div>
+  </section>
+
+  <section class="col section" id="use">
+    <h2>Add it to your homepage</h2>
+    <p>Copy <code>src/endless-loop.js</code> next to your page. Export your stems from a DAW with a few seconds of tail, then:</p>
+<pre>&lt;button id="play"&gt;▶ Play sound&lt;/button&gt;
+&lt;script type="module"&gt;
+import { createEndlessLoop } from './endless-loop.js';
+
+const loop = await createEndlessLoop({
+  stems: [
+    { url: 'pad.mp3',   loopSeconds: 9.6 },
+    { url: 'drums.mp3', loopSeconds: 9.6, gain: 0 },  <span class="c">// silent until a scene turns it up</span>
+  ],
+  rate: 0.85,   <span class="c">// optional Balatro-style slowdown</span>
+  range: 200,   <span class="c">// max mouse bend in cents</span>
+});
+
+document.getElementById('play').onclick = () => { loop.start(); loop.followPointer(); };
+<span class="c">// later: loop.setScene([1, 1]); loop.setRate(0.5); loop.mute(true);</span>
+&lt;/script&gt;</pre>
+    <div class="links">
+      <a class="btn" href="examples/homepage.html">▶ Open the starter</a>
+      <a href="https://github.com/YOUR_GH_USER/endless-loop-music/blob/main/src/endless-loop.js">View endless-loop.js</a>
+      <a href="https://github.com/YOUR_GH_USER/endless-loop-music#use-it-on-your-homepage">DAW tips and an AI prompt</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <p>By Jonas Qiao · MIT license · every sound is synthesized in your browser.</p>
+  <p>Not affiliated with Balatro, LocalThunk or Playstack. No game assets included.</p>
+</footer>
+</body>
+</html>

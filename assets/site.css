@@ -1,0 +1,101 @@
+/* Shared shell for every page. Design rules (see AGENTS.md):
+   - Paper ground, ink text, hairlines instead of cards.
+   - Five type sizes: display 56, h2 30, h3/lede 19, body 17, small 14. Two weights: 400, 600.
+   - --act means "this makes sound or opens a demo". Nothing else uses it.
+   - Game colors live only inside .stage. */
+:root{
+  color-scheme:light;
+  --paper:#FAF8F3; --ink:#1E1D1A; --mute:#6F6B63; --line:#E4DFD5; --code:#F1EEE7;
+  --act:#CF3B36;
+  --felt:#17352A; --felt-deep:#102820; --felt-ink:#EDE6D6; --felt-mute:#A9B8AD; --felt-line:rgba(237,230,214,.14);
+  --nav-h:52px; --col:680px; --wide:960px;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:-apple-system,system-ui,"Segoe UI","PingFang SC",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --fs-display:56px; --fs-h2:30px; --fs-h3:19px; --fs-body:17px; --fs-small:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:400 var(--fs-body)/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--mute);text-decoration-thickness:1px;text-underline-offset:4px}
+a:hover{text-decoration-color:var(--ink)}
+b,strong{font-weight:600}
+code{font:var(--fs-small) var(--mono);background:var(--code);padding:1px 5px;border-radius:4px}
+p{margin:0 0 16px}
+
+/* ---------- type tiers ---------- */
+.display{font:600 var(--fs-display)/1.05 var(--serif);letter-spacing:-.01em;margin:10px 0 18px}
+h2,.h2{font:600 var(--fs-h2)/1.2 var(--serif);margin:0 0 14px}
+h3,.h3{font:600 var(--fs-h3)/1.4 var(--sans);margin:28px 0 6px}
+.lede{font-size:var(--fs-h3);color:var(--mute);margin:0 0 24px}
+.eyebrow,.small{font-size:var(--fs-small);color:var(--mute);letter-spacing:.02em}
+.mute{color:var(--mute)}
+@media (max-width:760px){:root{--fs-display:38px;--fs-h2:26px}}
+
+/* ---------- layout ---------- */
+.col{max-width:calc(var(--col) + 48px);margin:0 auto;padding:0 24px}
+.wide{max-width:calc(var(--wide) + 48px);margin:0 auto;padding:0 24px}
+.section{padding-top:64px;scroll-margin-top:var(--nav-h)}
+hr.rule{border:0;border-top:1px solid var(--line);margin:0}
+
+/* ---------- controls ---------- */
+.btn{display:inline-block;font:600 var(--fs-body)/1.2 var(--sans);color:#fff;background:var(--act);border:0;border-radius:6px;
+  padding:12px 18px;text-decoration:none;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.75;cursor:default;filter:none}
+.btn-line{display:inline-block;font:400 var(--fs-body)/1.2 var(--sans);color:var(--ink);background:none;border:1px solid var(--ink);
+  border-radius:6px;padding:11px 17px;cursor:pointer;text-decoration:none}
+.links{display:flex;gap:10px 24px;flex-wrap:wrap;align-items:center}
+
+/* ---------- blocks (max one per section) ---------- */
+pre{margin:20px 0;padding:18px 20px;background:var(--code);border-radius:6px;overflow:auto;font:var(--fs-small)/1.65 var(--mono);color:var(--ink)}
+pre .c{color:var(--mute)}
+.note,.notice{border-left:2px solid var(--ink);padding:2px 0 2px 14px;margin:20px 0;font-size:var(--fs-small);color:var(--mute)}
+.notice{color:var(--ink)}
+.notice[hidden]{display:none}
+.note code,.notice code{overflow-wrap:anywhere}
+figure{margin:28px 0 0}
+figure img{display:block;width:100%;border:1px solid var(--line);border-radius:6px}
+figcaption{font-size:var(--fs-small);color:var(--mute);margin-top:10px}
+
+/* ---------- demo stage: the only place game colors appear ---------- */
+.stage{--red:#e2574c;--blue:#4a8fe7;--gold:#e9b949;--purple:#9a7bc0;--dim:var(--felt-mute);
+  background:var(--felt);color:var(--felt-ink);border-radius:10px;font-size:var(--fs-small);line-height:1.6}
+.stage a{color:var(--felt-ink);text-decoration-color:var(--felt-mute)}
+.stage code{background:rgba(0,0,0,.25);color:var(--felt-ink)}
+
+/* ---------- top nav ---------- */
+.site-nav{position:sticky;top:0;z-index:50;height:var(--nav-h);display:flex;align-items:center;gap:28px;
+  padding:0 24px;background:var(--paper);border-bottom:1px solid var(--line);font-size:var(--fs-small)}
+.site-nav a{text-decoration:none;color:var(--mute)}
+.site-nav a:hover{color:var(--ink)}
+.site-nav .brand{color:var(--ink);font-weight:600;white-space:nowrap}
+.site-nav nav{display:flex;gap:22px;overflow-x:auto;scrollbar-width:none;flex:1;align-self:stretch}
+.site-nav nav::-webkit-scrollbar{display:none}
+.site-nav nav a{display:flex;align-items:center;white-space:nowrap}
+.site-nav nav a[aria-current=page]{color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
+.site-nav nav a small{font:inherit;font-family:var(--mono);margin-right:6px}
+.site-nav .ext{display:flex;gap:18px;white-space:nowrap}
+@media (max-width:760px){
+  .site-nav{gap:14px;padding:0 14px}
+  .site-nav .brand span,.site-nav .ext a:not(.gh){display:none}
+  .site-nav nav{gap:12px}
+  .site-nav nav a small{display:none}
+}
+
+/* ---------- subpage intro + pager ---------- */
+.page-intro{max-width:calc(var(--col) + 48px);margin:0 auto;padding:48px 24px 8px}
+.page-intro .step{font-size:var(--fs-small);color:var(--mute)}
+.page-intro h1{font:600 var(--fs-h2)/1.2 var(--serif);margin:8px 0 12px}
+.page-intro p{color:var(--mute);margin:0}
+.pager{display:flex;justify-content:space-between;gap:24px;max-width:calc(var(--col) + 48px);margin:72px auto 0;
+  padding:20px 24px 64px;border-top:1px solid var(--line)}
+.pager a{display:block;text-decoration:none;color:var(--ink);font-weight:600}
+.pager a small{display:block;font-size:var(--fs-small);font-weight:400;color:var(--mute)}
+.pager a:hover{text-decoration:underline;text-underline-offset:4px}
+.pager a.next{text-align:right;margin-left:auto}
+
+/* ---------- footer ---------- */
+.site-foot{max-width:calc(var(--col) + 48px);margin:96px auto 0;padding:20px 24px 48px;border-top:1px solid var(--line);
+  font-size:var(--fs-small);color:var(--mute)}
+.site-foot p{margin:0 0 4px}

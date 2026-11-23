@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Endless loop music · mouse bend</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+  html,body{height:100%;overflow:hidden}
+  /* the whole screen under the nav is one .stage */
+  #stage{position:fixed;left:0;right:0;bottom:0;top:var(--nav-h);border-radius:0}
+  canvas{display:block;width:100%;height:100%}
+  .panel{position:fixed;left:0;top:var(--nav-h);bottom:0;width:360px;overflow:auto;z-index:10;scrollbar-width:thin;
+    padding:24px;background:var(--felt-deep);border-right:1px solid var(--felt-line)}
+  .panel .step{color:var(--felt-mute)}
+  .panel h1{font:600 var(--fs-h3)/1.3 var(--sans);margin:6px 0 8px}
+  .panel .sub{color:var(--felt-mute);margin:0 0 16px}
+  .panel button{font:inherit;color:var(--felt-ink);background:#2a4b3e;border:0;border-radius:6px;padding:6px 10px;cursor:pointer}
+  .panel button:hover{background:#355a48}
+  .panel button.on{background:var(--red)}
+  #start{width:100%;padding:10px;margin-bottom:8px;background:var(--act)}
+  .row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:12px;border-top:1px solid var(--felt-line)}
+  .row label{flex:1}
+  .row small{display:block;color:var(--felt-mute);font-size:inherit;line-height:1.45;margin-top:2px}
+  .scenes{display:flex;gap:6px;margin-top:8px}
+  .scenes button{flex:1}
+  .stats{padding-top:12px;border-top:1px solid var(--felt-line);font-variant-numeric:tabular-nums;color:var(--felt-mute)}
+  .stats b{color:var(--felt-ink);font-weight:600}
+  .mini-pager{display:flex;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--felt-line)}
+  .mini-pager a{text-decoration:none}
+  .hint{position:fixed;right:140px;bottom:16px;color:var(--felt-mute);text-align:right;z-index:5}
+  @media (max-width:760px){
+    .panel{top:auto;width:auto;right:0;max-height:52vh;border-right:0;border-top:1px solid var(--felt-line);padding:18px 16px}
+    .hint{display:none}
+  }
+</style>
+</head>
+<body>
+<header class="site-nav">
+  <a class="brand" href="../index.html">∞ <span>endless-loop-music</span></a>
+  <nav aria-label="Site">
+    <a href="../index.html">Overview</a>
+    <a href="../demos/balatro.html"><small>01</small>Balatro</a>
+    <a href="../demos/mouse-bend.html" aria-current="page"><small>02</small>Mouse bend</a>
+    <a href="../examples/homepage.html"><small>03</small>Starter</a>
+  </nav>
+  <div class="ext"><a href="https://github.com/YOUR_GH_USER/endless-loop-music/blob/main/README.zh-CN.md">中文</a><a class="gh" href="https://github.com/YOUR_GH_USER/endless-loop-music">GitHub</a></div>
+</header>
+<div id="stage" class="stage"><canvas id="cv"></canvas></div>
+
+<div class="panel stage">
+  <div class="step">Step 2 of 3 · the homepage trick</div>
+  <h1>Mouse bend lab</h1>
+  <p class="sub">Five looping stems. Move the mouse to bend the pitch, then flip each switch and hear the loop point disappear.</p>
+  <button id="start">▶ Start sound</button>
+
+  <div class="row"><label>① Mouse Y bends pitch<small>Same curve as nays.tech: 32% dead zone in the middle, ±200 cents at the edges</small></label><button data-k="bend" class="on">On</button></div>
+  <div class="row"><label>② Coprime stem lengths<small>Chords 16 beats, arp 7, bells 9: 1008 beats before an exact repeat</small></label><button data-k="poly">Off</button></div>
+  <div class="row"><label>③ Slow pitch drift<small>Two sines with incommensurate periods, about ±30 cents, never line up</small></label><button data-k="drift">Off</button></div>
+  <div class="row" style="display:block"><label>④ Scenes<small>Stems crossfade, the beat never stops</small></label>
+    <div class="scenes"><button data-s="calm">Blind</button><button data-s="shop">Shop</button><button data-s="boss">Boss</button></div>
+  </div>
+
+  <div class="stats" id="stats">Not started</div>
+  <div class="mini-pager"><a href="balatro.html">← Step 1 · Balatro</a><a href="../examples/homepage.html">Step 3 · Starter →</a></div>
+</div>
+<div class="hint">Rings: where each stem is inside its own loop<br>Right bar: mouse height → pitch-bend curve</div>
+
+<script>
+const BPM = 90, BEAT = 60 / BPM, SR = 44100, BASE = 16; // chord progression: 16 beats = 4 bars
+const midi = m => 440 * Math.pow(2, (m - 69) / 12);
+
+/* ---------- instruments, all synthesized in an OfflineAudioContext ---------- */
+function env(oc, t, a, peak, rel, dur) {
+  const g = oc.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(peak, t + a);
+  g.gain.setValueAtTime(peak, t + Math.max(a, dur));
+  g.gain.exponentialRampToValueAtTime(1e-4, t + Math.max(a, dur) + rel);
+  return g;
+}
+const INST = {
+  pad(oc, dst, t, f, d) {               // two slightly detuned saws + lowpass: warm pad
+    const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.Q.value = 0.4;
+    const g = env(oc, t, 0.9, 0.05, 1.8, d);
+    [-7, 7].forEach(c => { const o = oc.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = c;
+      o.connect(lp); o.start(t); o.stop(t + d + 2); });
+    lp.connect(g).connect(dst);
+  },
+  bass(oc, dst, t, f, d) {
+    const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420;
+    const g = env(oc, t, 0.01, 0.28, 0.25, d);
+    const o = oc.createOscillator(); o.type = 'triangle'; o.frequency.value = f;
+    o.connect(lp).connect(g).connect(dst); o.start(t); o.stop(t + d + 0.4);
+  },
+  pluck(oc, dst, t, f, d) {             // plucked arpeggio
+    const g = env(oc, t, 0.004, 0.11, 0.45, 0.02);
+    const o = oc.createOscillator(); o.type = 'triangle'; o.frequency.value = f;
+    const o2 = oc.createOscillator(); o2.type = 'sine'; o2.frequency.value = f * 2;
+    const g2 = oc.createGain(); g2.gain.value = 0.35;
+    o.connect(g); o2.connect(g2).connect(g); g.connect(dst);
+    o.start(t); o2.start(t); o.stop(t + 0.6); o2.stop(t + 0.6);
+  },
+  bell(oc, dst, t, f, d) {              // inharmonic partials = metallic bell
+    [[1, 0.09, 3.2], [2.76, 0.035, 1.4], [5.4, 0.015, 0.7]].forEach(([r, a, rel]) => {
+      const g = env(oc, t, 0.003, a, rel, 0.01);
+      const o = oc.createOscillator(); o.type = 'sine'; o.frequency.value = f * r;
+      o.connect(g).connect(dst); o.start(t); o.stop(t + rel + 0.1);
+    });
+  },
+  kick(oc, dst, t) {
+    const o = oc.createOscillator(); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.18);
+    const g = env(oc, t, 0.002, 0.55, 0.28, 0.01); o.connect(g).connect(dst); o.start(t); o.stop(t + 0.4);
+  },
+  hat(oc, dst, t, f, d, v = 0.05) {
+    const n = oc.createBufferSource(); n.buffer = NOISE(oc);
+    const hp = oc.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7000;
+    const g = env(oc, t, 0.001, v, 0.05, 0.005); n.connect(hp).connect(g).connect(dst); n.start(t); n.stop(t + 0.12);
+  },
+  snare(oc, dst, t) {
+    const n = oc.createBufferSource(); n.buffer = NOISE(oc);
+    const bp = oc.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.8;
+    const g = env(oc, t, 0.001, 0.16, 0.16, 0.01); n.connect(bp).connect(g).connect(dst); n.start(t); n.stop(t + 0.3);
+  }
+};
+let _noise = null;
+function NOISE(oc) {
+  if (_noise && _noise.sampleRate === oc.sampleRate) return _noise;
+  _noise = oc.createBuffer(1, oc.sampleRate * 0.5, oc.sampleRate);
+  const d = _noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  return _noise;
+}
+
+/* ---------- score: each stem = a pattern + its length in beats ---------- */
+// A minor pentatonic (A C D E G) sounds fine over Am F C G, so misaligned layers stay consonant
+const PENTA = [69, 72, 74, 76, 79, 81, 84];
+const CHORDS = [[57, 60, 64], [53, 57, 60], [55, 60, 64], [55, 59, 62]]; // Am F C G
+const ROOTS = [45, 41, 48, 43];
+const STEMS = [
+  { name: 'chords', color: '#4a8fe7', inst: 'pad', len: 16,
+    pattern: CHORDS.flatMap((c, i) => c.map(m => ({ t: i * 4, m, d: 3.6 }))) },
+  { name: 'bass', color: '#9bd67a', inst: 'bass', len: 16,
+    pattern: ROOTS.flatMap((r, i) => [0, 1.5, 2, 3.5].map(o => ({ t: i * 4 + o, m: r, d: 0.4 }))) },
+  { name: 'arp', color: '#e9b949', inst: 'pluck', len: 7, polyOnly: true,
+    pattern: [0, 2, 4, 2, 5, 4, 1, 3, 2, 4, 0, 5, 3, 1].map((s, i) => ({ t: i * 0.5, m: PENTA[s], d: 0.3 })) },
+  { name: 'bells', color: '#e2574c', inst: 'bell', len: 9, polyOnly: true,
+    pattern: [[0, 5], [2.5, 3], [5, 6], [6.5, 4]].map(([t, s]) => ({ t, m: PENTA[s] + 12, d: 0.1 })) },
+  { name: 'drums', color: '#c9b8f0', inst: 'drums', len: 4,
+    pattern: [{ t: 0, k: 'kick' }, { t: 2, k: 'kick' }, { t: 2.75, k: 'kick' }, { t: 1, k: 'snare' }, { t: 3, k: 'snare' },
+      ...[0, .5, 1, 1.5, 2, 2.5, 3, 3.5].map(t => ({ t, k: 'hat', v: t % 1 ? 0.03 : 0.06 }))] }
+];
+
+/* ---------- render one loop offline and wrap the tail back to the start ---------- */
+async function renderStem(stem, poly) {
+  const beats = (poly && stem.polyOnly) ? stem.len : BASE;   // with ② off, every stem is cut to 16 beats
+  const L = Math.round(beats * BEAT * SR), TAIL = Math.round(4 * SR);
+  const oc = new OfflineAudioContext(2, L + TAIL, SR);
+  const bus = oc.createGain(); bus.connect(oc.destination);
+  for (let k = 0; k * stem.len < beats; k++) {
+    for (const e of stem.pattern) {
+      const tb = k * stem.len + e.t; if (tb >= beats) continue;
+      const t = tb * BEAT;
+      if (stem.inst === 'drums') INST[e.k](oc, bus, t, 0, 0, e.v);
+      else INST[stem.inst](oc, bus, t, midi(e.m), e.d * BEAT);
+    }
+  }
+  const raw = await oc.startRendering();
+  const out = new AudioBuffer({ length: L, numberOfChannels: 2, sampleRate: SR });
+  for (let ch = 0; ch < 2; ch++) {
+    const d = raw.getChannelData(ch);
+    for (let i = 0; i < TAIL; i++) d[i % L] += d[L + i]; // add the release of the last notes onto the start: no audible cut at the seam
+    out.copyToChannel(d.subarray(0, L), ch);
+  }
+  return { buffer: out, beats };
+}
+/* ---------- playback engine ---------- */
+const S = { bend: true, poly: false, drift: false, scene: 'calm' };
+const SCENES = {               // scene = per-stem gains + bus lowpass cutoff
+  calm: { mix: [1, 0.9, 0.7, 0.55, 0.3], lp: 5000 },
+  shop: { mix: [0.9, 0.8, 1, 0.9, 0.55], lp: 14000 },
+  boss: { mix: [0.75, 1.25, 0.5, 0, 1], lp: 1600 }
+};
+let ctx = null, bus = null, lp = null, analyser = null, live = [], playing = false;
+const panel = document.querySelector('.panel');
+let pos = 0, lastCtxT = 0, cur = 0, rate = 1, mouseY = innerHeight / 2, gen = 0, TOP = 0;
+
+function bendFromY(y, h) {      // matches nays.tech: +200 at top, -200 at bottom, 0 in the middle 32%
+  const n = 1 - y / h - 0.5, a = Math.abs(n);
+  if (a <= 0.16) return 0;
+  const t = Math.min((a - 0.16) / 0.34, 1);
+  return Math.sign(n) * t * t * (3 - 2 * t) * 200;
+}
+const drift = t => 22 * Math.sin(2 * Math.PI * t / 37) + 10 * Math.sin(2 * Math.PI * t / 11.3);
+
+async function start() {
+  ctx = new AudioContext();
+  await ctx.resume();
+  lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = SCENES[S.scene].lp; lp.Q.value = 0.7;
+  bus = ctx.createGain(); bus.gain.value = 0.6;
+  analyser = ctx.createAnalyser(); analyser.fftSize = 512;
+  bus.connect(lp).connect(analyser).connect(ctx.destination);
+  await load();
+}
+
+async function load() {
+  const my = ++gen;
+  document.getElementById('stats').textContent = 'Rendering stems…';
+  const rendered = await Promise.all(STEMS.map(s => renderStem(s, S.poly)));
+  if (my !== gen) return;                      // a switch changed during rendering: drop this result
+  const now = ctx.currentTime, at = now + 0.12;
+  live.forEach(l => { l.g.gain.setTargetAtTime(0, now, 0.15); l.src.stop(now + 1); });
+  live = rendered.map((r, i) => {
+    const src = ctx.createBufferSource();
+    src.buffer = r.buffer; src.loop = true; src.detune.value = cur;
+    const g = ctx.createGain(); g.gain.value = 0;
+    g.gain.setTargetAtTime(SCENES[S.scene].mix[i], at, 0.25);
+    src.connect(g).connect(bus);
+    src.start(at);                              // all stems start at the same time: sample-accurate sync
+    return { src, g, beats: r.beats, stem: STEMS[i] };
+  });
+  pos = 0; lastCtxT = at; playing = true;
+}
+
+function setScene(name) {
+  S.scene = name;
+  document.querySelectorAll('[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === name));
+  if (!ctx) return;
+  const now = ctx.currentTime, sc = SCENES[name];
+  live.forEach((l, i) => l.g.gain.setTargetAtTime(sc.mix[i], now, 0.6)); // only gains change, nothing restarts: the groove is continuous
+  lp.frequency.setTargetAtTime(sc.lp, now, 0.5);
+}
+
+/* ---------- interaction ---------- */
+addEventListener('pointermove', e => { mouseY = e.clientY - TOP; }, { passive: true });
+document.getElementById('start').onclick = async e => {
+  e.target.disabled = true; e.target.textContent = 'Playing: move the mouse';
+  await start();
+};
+document.querySelectorAll('[data-k]').forEach(b => b.onclick = () => {
+  const k = b.dataset.k; S[k] = !S[k];
+  b.classList.toggle('on', S[k]); b.textContent = S[k] ? 'On' : 'Off';
+  if (k === 'poly' && ctx) load();
+});
+document.querySelectorAll('[data-s]').forEach(b => b.onclick = () => setScene(b.dataset.s));
+setScene('calm');
+
+/* ---------- per frame: target pitch → smooth → write detune; integrate the playhead ---------- */
+const gcd = (a, b) => b ? gcd(b, a % b) : a, lcm = (a, b) => a / gcd(a, b) * b;
+const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+function frame(ms) {
+  const t = ms / 1000;
+  const target = (S.bend ? bendFromY(mouseY, H) : 0) + (S.drift ? drift(t) : 0);
+  const prev = cur;
+  cur += (target - cur) * 0.12;
+  if (ctx && Math.abs(cur - prev) > 0.01) live.forEach(l => l.src.detune.setTargetAtTime(cur, ctx.currentTime, 0.05));
+  rate = Math.pow(2, cur / 1200);
+  if (ctx && playing && ctx.currentTime > lastCtxT) { pos += (ctx.currentTime - lastCtxT) * rate; lastCtxT = ctx.currentTime; }
+  draw(t);
+  if (playing) stats();
+  requestAnimationFrame(frame);
+}
+function stats() {
+  const period = live.reduce((a, l) => lcm(a, l.beats), 1);  // beats until every stem is back at its start together
+  const pSec = period * BEAT, left = (pSec - (pos % pSec)) / rate;
+  document.getElementById('stats').innerHTML =
+    `Bend <b>${cur >= 0 ? '+' : ''}${cur.toFixed(0)}</b> cents (${(cur / 100).toFixed(2)} semitones), speed <b>×${rate.toFixed(3)}</b><br>` +
+    `Chord loop played <b>${Math.floor(pos / (BASE * BEAT))}</b> times<br>` +
+    `Full repeat period <b>${period}</b> beats ≈ <b>${fmt(pSec)}</b><br>` +
+    `Next exact repeat in <b>${S.drift ? '∞ (drift periods never align)' : fmt(left)}</b>`;
+}
+/* ---------- visuals ---------- */
+const cv = document.getElementById('cv'), g2 = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1, level = 0;
+function resize() { DPR = devicePixelRatio || 1; const r = cv.parentElement.getBoundingClientRect(); TOP = r.top; W = r.width; H = r.height; mouseY = H / 2; cv.width = W * DPR; cv.height = H * DPR; g2.setTransform(DPR, 0, 0, DPR, 0, 0); }
+addEventListener('resize', resize); resize();
+const td = new Uint8Array(512);
+
+function draw(t) {
+  g2.clearRect(0, 0, W, H);
+  // level glow
+  if (analyser) { analyser.getByteTimeDomainData(td); let s = 0; for (const v of td) s += ((v - 128) / 128) ** 2; level += (Math.sqrt(s / td.length) - level) * 0.2; }
+  const vh = W <= 760 ? H - panel.offsetHeight : H; // on phones the panel is a bottom sheet
+  const cx = W > 900 ? W * 0.6 : W * 0.5, cy = W <= 760 ? vh * 0.5 : H * 0.55, R = W <= 760 ? Math.min(W * 0.72, vh) * 0.4 : Math.min(W, H) * 0.36;
+  const glow = g2.createRadialGradient(cx, cy, 0, cx, cy, R * 1.3);
+  glow.addColorStop(0, `rgba(233,185,73,${0.08 + level * 1.4})`); glow.addColorStop(1, 'rgba(233,185,73,0)');
+  g2.fillStyle = glow; g2.fillRect(0, 0, W, H);
+
+  // one ring per stem: dots = notes, bright arc = playhead
+  const rings = live.length ? live : STEMS.map(s => ({ stem: s, beats: (S.poly && s.polyOnly) ? s.len : BASE }));
+  rings.forEach((l, i) => {
+    const r = R * (1 - i * 0.16), beats = l.beats, secs = beats * BEAT;
+    const ph = live.length ? (pos % secs) / secs : 0, a0 = -Math.PI / 2;
+    g2.lineWidth = 2; g2.strokeStyle = 'rgba(255,255,255,0.08)';
+    g2.beginPath(); g2.arc(cx, cy, r, 0, Math.PI * 2); g2.stroke();
+    g2.strokeStyle = l.stem.color; g2.lineWidth = 3; g2.globalAlpha = 0.85;
+    g2.beginPath(); g2.arc(cx, cy, r, a0, a0 + ph * Math.PI * 2); g2.stroke(); g2.globalAlpha = 1;
+    for (let k = 0; k * l.stem.len < beats; k++) for (const e of l.stem.pattern) {
+      const tb = k * l.stem.len + e.t; if (tb >= beats) continue;
+      const a = a0 + tb / beats * Math.PI * 2, hit = Math.abs(((ph * beats - tb) + beats) % beats) < 0.25;
+      g2.fillStyle = hit ? '#fff' : l.stem.color; g2.globalAlpha = hit ? 1 : 0.45;
+      g2.beginPath(); g2.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, hit ? 4 : 2, 0, Math.PI * 2); g2.fill();
+    }
+    g2.globalAlpha = 1;
+    const ha = a0 + ph * Math.PI * 2;
+    g2.fillStyle = l.stem.color; g2.beginPath(); g2.arc(cx + Math.cos(ha) * r, cy + Math.sin(ha) * r, 6, 0, Math.PI * 2); g2.fill();
+    g2.fillStyle = 'rgba(243,234,219,.75)'; g2.font = '12px -apple-system,PingFang SC,sans-serif'; g2.textAlign = 'right';
+    g2.fillText(`${l.stem.name} ${beats} beats`, cx - 10, cy - r + 4);
+  });
+
+  // right side: mouse height → bend curve
+  const x0 = W - 70, amp = 40;
+  g2.fillStyle = 'rgba(255,255,255,0.05)'; g2.fillRect(x0 - amp, H * 0.34, amp * 2, H * 0.32);
+  g2.strokeStyle = 'rgba(255,255,255,0.15)'; g2.lineWidth = 1;
+  g2.beginPath(); g2.moveTo(x0, 0); g2.lineTo(x0, H); g2.stroke();
+  g2.strokeStyle = S.bend ? '#e2574c' : 'rgba(226,87,76,.3)'; g2.lineWidth = 2; g2.beginPath();
+  for (let y = 0; y <= H; y += 4) { const x = x0 + bendFromY(y, H) / 200 * amp; y ? g2.lineTo(x, y) : g2.moveTo(x, y); }
+  g2.stroke();
+  const mx = x0 + (S.bend ? bendFromY(mouseY, H) : 0) / 200 * amp;
+  g2.fillStyle = '#fff'; g2.beginPath(); g2.arc(mx, mouseY, 5, 0, Math.PI * 2); g2.fill();
+  g2.fillStyle = 'rgba(243,234,219,.6)'; g2.textAlign = 'center';
+  g2.fillText('+2 st', x0, 16); g2.fillText('dead zone', x0, H * 0.5 + 4); g2.fillText('-2 st', x0, H - 8);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Homepage example · endless-loop.js</title>
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+  /* demo-site only: the template sits in a hairline frame, read as Figure 1 */
+  .preview{margin-top:32px}
+  .preview .frame{border:1px solid var(--line);border-radius:6px;background:#fff;position:relative;overflow:hidden}
+  /* ---- the template itself: copy from here ---- */
+  .tpl{max-width:520px;margin:0 auto;padding:72px 32px 80px}
+  .tpl h1{font:600 var(--fs-h2)/1.2 var(--serif);margin:0 0 12px}
+  .tpl p{color:var(--mute)}
+  .tpl button{font:inherit;cursor:pointer;border-radius:6px;padding:10px 16px}
+  #play{color:#fff;background:var(--act);border:0;font-weight:600}
+  #scene{color:var(--ink);background:none;border:1px solid var(--ink);margin-left:8px}
+  #meter{position:absolute;right:20px;top:0;bottom:0;width:1px;background:var(--line)}
+  #dot{position:absolute;left:-5px;top:50%;width:11px;height:11px;border-radius:50%;background:var(--ink);transform:translateY(-5px)}
+</style>
+</head>
+<body>
+<header class="site-nav">
+  <a class="brand" href="../index.html">∞ <span>endless-loop-music</span></a>
+  <nav aria-label="Site">
+    <a href="../index.html">Overview</a>
+    <a href="../demos/balatro.html"><small>01</small>Balatro</a>
+    <a href="../demos/mouse-bend.html"><small>02</small>Mouse bend</a>
+    <a href="../examples/homepage.html" aria-current="page"><small>03</small>Starter</a>
+  </nav>
+  <div class="ext"><a href="https://github.com/YOUR_GH_USER/endless-loop-music/blob/main/README.zh-CN.md">中文</a><a class="gh" href="https://github.com/YOUR_GH_USER/endless-loop-music">GitHub</a></div>
+</header>
+<section class="page-intro">
+  <div class="step">Step 3 of 3 · copy this</div>
+  <h1>Homepage starter</h1>
+  <p>A complete homepage in about 75 lines on top of <code>src/endless-loop.js</code>. The frame below is the template you copy. The nav and this text belong to the demo site.</p>
+</section>
+<div class="col"><p class="notice" id="fileNote" hidden>You opened this file from disk. ES module imports are blocked on <code>file://</code>, so nothing will play. Run <code>python3 -m http.server 8000</code> in the repo folder and open <code>http://localhost:8000/examples/homepage.html</code>, or use the live site.</p></div>
+<script>if (location.protocol === "file:") document.getElementById("fileNote").hidden = false;</script>
+<figure class="wide preview">
+  <div class="frame">
+    <main class="tpl">
+      <h1>Your Name</h1>
+      <p>A minimal homepage with an endless soundtrack. Press play, then move the mouse up and down.
+         The two stems below are synthesized in the browser so this example needs no audio files.
+         Swap them for your own <code>{ url: 'stem.mp3', loopSeconds: 9.6 }</code>.</p>
+      <button id="play">▶ Play sound</button><button id="scene">Add sparkle</button>
+    </main>
+    <div id="meter"><div id="dot"></div></div>
+  </div>
+  <figcaption>Figure 1. Preview of the template. The dot on the right follows your mouse height, which sets the pitch bend.</figcaption>
+</figure>
+<div class="pager"><a class="prev" href="../demos/mouse-bend.html"><small>← Step 2</small>Mouse bend lab</a><a class="next" href="../index.html#use"><small>Done →</small>Add it to your homepage</a></div>
+
+<script type="module">
+import { createEndlessLoop } from '../src/endless-loop.js';
+
+const SR = 44100, BEAT = 60 / 96, LOOP = 16 * BEAT;          // 4 bars at 96 BPM
+const hz = m => 440 * 2 ** ((m - 69) / 12);
+
+// Render a stem offline. Two extra seconds let the release ring past the loop point;
+// loopSeconds tells endless-loop.js to fold that tail back onto the start.
+async function render(write) {
+  const oc = new OfflineAudioContext(2, Math.round((LOOP + 2) * SR), SR);
+  write(oc, oc.destination);
+  return oc.startRendering();
+}
+function tone(oc, dst, t, f, dur, type, peak) {
+  const o = oc.createOscillator(), g = oc.createGain();
+  o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(1e-4, t + dur);
+  o.connect(g).connect(dst); o.start(t); o.stop(t + dur + 0.05);
+}
+const CHORDS = [[57, 60, 64], [53, 57, 60], [48, 55, 64], [55, 59, 62]];   // Am F C G: G resolves back to Am
+const pad = await render((oc, dst) => CHORDS.forEach((c, i) =>
+  c.forEach(m => tone(oc, dst, i * 4 * BEAT, hz(m), 4 * BEAT + 1.5, 'triangle', 0.08))));
+const PENTA = [69, 72, 74, 76, 79, 81];                                      // A minor pentatonic
+const sparkle = await render((oc, dst) => { for (let i = 0; i < 32; i++)
+  tone(oc, dst, i * BEAT / 2, hz(PENTA[(i * 5) % 6] + 12), 0.5, 'sine', 0.05); });
+
+const loop = await createEndlessLoop({
+  stems: [{ buffer: pad, loopSeconds: LOOP }, { buffer: sparkle, loopSeconds: LOOP, gain: 0 }],
+  rate: 1, volume: 0.6,
+});
+
+document.getElementById('play').onclick = e => {
+  if (!loop.playing) { loop.start(); loop.followPointer(); e.target.textContent = '❚❚ Mute'; return; }
+  const muted = e.target.textContent.includes('Unmute');
+  loop.mute(!muted); e.target.textContent = muted ? '❚❚ Mute' : '▶ Unmute';
+};
+let on = false;
+document.getElementById('scene').onclick = e => {
+  on = !on; loop.setScene([1, on ? 1 : 0]); e.target.textContent = on ? 'Remove sparkle' : 'Add sparkle';
+};
+addEventListener('pointermove', e => { document.getElementById('dot').style.top = (e.clientY / innerHeight * 100) + '%'; }); // pitch follows height in the window
+</script>
+</body>
+</html>
