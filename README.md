@@ -95,7 +95,8 @@ The code keeps the audio continuous. The music has to hide the seam. These are t
 - **Vertical remixing.** The five tracks are one piece in five arrangements: same chords, same tempo, same bar lines. A crossfade at any moment lands on the beat. You hear the band change instruments, not a new song starting.
 - **Resolve across the seam.** The last bar is A7, the dominant. The first bar is Dm9, the tonic. The loop point is heard as a normal cadence (V → i), which the ear reads as "arriving", not "starting over".
 - **Rootless voicings and modal melody.** Jazz-style chords without the root (the bass plays it) sound soft and open. A D dorian melody fits every chord in the loop, so nothing clashes no matter how often it repeats.
-- **Slow it down.** At 0.7× the tempo drops from 100 to 70 BPM and a 16-bar loop grows to about 55 s. The longer the cycle, the harder it is to remember where it began.
+- **Slow it down.** At 0.7× the tempo drops from 100 to 70 BPM and a 16-bar loop grows to about 96 s. The longer the cycle, the harder it is to remember where it began.
+- **Seven beats to the bar.** All five game themes are in 7/4 ([Balatro Wiki](https://balatrowiki.org/w/Music)), and so is the remake, felt as 4+3. The bar runs three beats past where a 4/4 ear expects it to end, so the loop is harder to count and harder to place.
 - **Events you cause.** The organ and fire layers arrive when you score. Their timing depends on how you play, so each pass through the same loop has different material on top. That is the "new content keeps appearing" feeling.
 - **Fold the tail.** Notes near the end ring past the loop point. Instead of cutting them off, add that tail onto the beginning of the buffer. The seam then contains the same reverb and release as any other moment.
 

@@ -102,8 +102,10 @@
 </section>
 <div class="pager"><a class="prev" href="../index.html" data-zh="<small>← 概览</small>起因和信号链"><small>← Overview</small>The story and the signal chain</a><a class="next" href="mouse-bend.html" data-zh="<small>第 2 步 →</small>鼠标调音实验室"><small>Step 2 →</small>Mouse bend lab</a></div>
 <script>
-/* ================= score: 16 bars, D dorian / minor, written at the unslowed 100 BPM ================= */
-const SR = 32000, BPM = 100, BEAT = 60 / BPM, BARS = 16, BEATS = BARS * 4;
+/* ================= score: 16 bars of 7/4 (felt as 4+3), D dorian / minor, written at the unslowed 100 BPM ================= */
+// The game's five themes are in 7/4 (balatrowiki.org/w/Music). The odd bar never lands where a 4/4 ear expects it to,
+// which is one more reason the loop is hard to count and hard to tire of.
+const SR = 32000, BPM = 100, BEAT = 60 / BPM, BARS = 16, BPB = 7, BEATS = BARS * BPB;
 const LEN = Math.round(BEATS * BEAT * SR), TAIL = Math.round(3 * SR);
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 
@@ -114,8 +116,8 @@ const PROG = [
   [46,[53,57,58,62]], [45,[55,60,64,67]], [43,[53,57,58,62]], [41,[53,57,60,64]],   // Bbmaj7 Am7 Gm9 Fmaj7
   [40,[52,55,58,62]], [45,[55,57,61,64]], [38,[53,57,60,64]], [45,[55,57,61,64]]    // Em7b5 A7 Dm9 A7
 ];
-// melody: [beat, MIDI, duration in beats]
-const MELODY = [
+// melody motifs: [beat, MIDI, duration in beats], written as 4 beats per bar; to7() turns them into 7/4 bars below
+const MOTIFS = [
   [0,69,1],[1,72,.5],[1.5,74,1.5],[3,76,.5],[3.5,77,.5],  [4,76,1],[5,74,.5],[5.5,72,.5],[6,69,2],
   [8,77,1],[9,76,.5],[9.5,74,1.5],[11,69,1],              [12,73,1.5],[13.5,76,.5],[14,79,1],[15,70,1],
   [16,69,.5],[16.5,74,.5],[17,77,1],[18,76,.5],[18.5,74,.5],[19,72,1],  [20,74,3],
@@ -125,6 +127,12 @@ const MELODY = [
   [48,74,1],[49,70,1],[50,67,2],                          [52,69,1],[53,73,1],[54,76,1],[55,79,1],
   [56,77,1.5],[57.5,76,.5],[58,74,2],                     [60,76,2],[62,73,2]
 ];
+// Each 7/4 bar = the 4-beat motif, then a 3-beat answer that repeats the motif's beats 2–4.
+const to7 = ms => ms.flatMap(([b, m, d]) => {
+  const bar = Math.floor(b / 4), o = b - bar * 4, at = bar * BPB + o;
+  return o >= 1 ? [[at, m, d], [at + 3, m, d]] : [[at, m, d]];
+});
+const MELODY = to7(MOTIFS);
 const swing = b => (b % 1 === 0.5) ? b + 0.06 : b;   // light swing: offbeats a little late
 
 /* ================= synths (used inside an OfflineAudioContext) ================= */
@@ -204,37 +212,38 @@ const SYN = {
     const g = adsr(oc, t, .001, v, .004, .045); n.connect(hp).connect(g).connect(out); n.start(t, Math.random() * .5); n.stop(t + .1);
   }
 };
-/* ================= layers: each layer is 16 bars of notes ================= */
+/* ================= layers: each layer is 16 bars of 7/4, grouped 4+3 ================= */
 const LAYERS = {
-  organ(oc, o) { PROG.forEach(([, v], i) => v.forEach(m => SYN.organ(oc, o, i * 4 * BEAT, m, 4 * BEAT - .1))); },
+  organ(oc, o) { PROG.forEach(([, v], i) => v.forEach(m => SYN.organ(oc, o, i * BPB * BEAT, m, BPB * BEAT - .1))); },
   bass(oc, o) {
     PROG.forEach(([r], i) => {
-      const next = PROG[(i + 1) % BARS][0], b = i * 4;
-      [[0, r, 1.2], [1.5, r, .4], [2, r + 7, .9], [3, r + 12, .4], [3.5, next + (next > r ? -1 : 1), .4]]
+      const next = PROG[(i + 1) % BARS][0], b = i * BPB;
+      [[0, r, 1.2], [1.5, r, .4], [2, r + 7, .9], [3, r + 12, .4],            // the 4
+       [4, r, .9], [5, r + 7, .9], [6, r + 12, .4], [6.5, next + (next > r ? -1 : 1), .4]]   // the 3, walking into the next bar
         .forEach(([t, m, d]) => SYN.bass(oc, o, swing(b + t) * BEAT, m, d * BEAT));
     });
   },
   drums(oc, o) {
     for (let bar = 0; bar < BARS; bar++) {
-      const b = bar * 4;
-      [0, 2.5].concat(bar % 4 === 3 ? [3.5] : []).forEach(t => SYN.kick(oc, o, swing(b + t) * BEAT));
-      [1, 3].forEach(t => SYN.snare(oc, o, (b + t) * BEAT));
-      for (let e = 0; e < 8; e++) SYN.hat(oc, o, swing(b + e / 2) * BEAT, e % 2 ? .035 : .06);
+      const b = bar * BPB;
+      [0, 2.5, 4].concat(bar % 4 === 3 ? [6.5] : []).forEach(t => SYN.kick(oc, o, swing(b + t) * BEAT));
+      [2, 5.5].forEach(t => SYN.snare(oc, o, swing(b + t) * BEAT));
+      for (let e = 0; e < BPB * 2; e++) SYN.hat(oc, o, swing(b + e / 2) * BEAT, e === 0 || e === 8 ? .07 : e % 2 ? .035 : .055);
     }
   },
   lead(oc, o) { MELODY.forEach(([t, m, d]) => SYN.lead(oc, o, swing(t) * BEAT, m, d * BEAT)); },
   arp(oc, o) {
-    const shape = [0, 1, 2, 3, 2, 1, 3, 2];
-    PROG.forEach(([, v], i) => shape.forEach((k, e) => SYN.pluck(oc, o, swing(i * 4 + e / 2) * BEAT, v[k] + 12)));
+    const shape = [0, 1, 2, 3, 2, 1, 3, 2,  0, 2, 3, 1, 3, 2];               // 8 eighths + 6 eighths
+    PROG.forEach(([, v], i) => shape.forEach((k, e) => SYN.pluck(oc, o, swing(i * BPB + e / 2) * BEAT, v[k] + 12)));
   },
   bells(oc, o) {
     PROG.forEach(([, v], i) => {
-      SYN.bell(oc, o, i * 4 * BEAT, v[3] + 24);
-      if (i % 2) SYN.bell(oc, o, (i * 4 + 2.5) * BEAT, v[1] + 24);
+      SYN.bell(oc, o, i * BPB * BEAT, v[3] + 24);
+      if (i % 2) SYN.bell(oc, o, (i * BPB + 4) * BEAT, v[1] + 24);
     });
   },
   space(oc, o) {
-    for (let i = 0; i < BARS; i += 2) PROG[i][1].forEach(m => SYN.space(oc, o, i * 4 * BEAT, m + 12, 8 * BEAT - .2));
+    for (let i = 0; i < BARS; i += 2) PROG[i][1].forEach(m => SYN.space(oc, o, i * BPB * BEAT, m + 12, 2 * BPB * BEAT - .2));
   }
 };
 
@@ -395,14 +404,14 @@ function frame(ms) {
     const { rate, organ, flames } = step(dt);
     live.forEach(s => setBar('m_' + s.code, s.cur));
     setBar('m_org', amb.ambientOrgan1.vol, 0.4); setBar('m_f2', amb.ambientFire2.vol, 0.9); setBar('m_f1', amb.ambientFire1.vol, 0.8);
-    const cents = 1200 * Math.log2(rate), loopSec = LEN / SR / rate, bar = Math.floor(G.pos / (4 * BEAT)) + 1;
+    const cents = 1200 * Math.log2(rate), loopSec = LEN / SR / rate, bar = Math.floor(G.pos / (BPB * BEAT)) + 1;
     $('stats').innerHTML =
       `PITCH_MOD <b>${G.PITCH_MOD.toFixed(3)}</b> × original_pitch <b>${G.original_pitch.toFixed(2)}</b> = ${tr('playback rate', '播放速率')} <b>${rate.toFixed(3)}</b><br>` + tr(
       `Pitch shift <b>${cents.toFixed(0)}</b> cents (${(cents / 100).toFixed(2)} semitones), tempo <b>${(BPM * rate).toFixed(1)}</b> BPM<br>` +
-      `One 16-bar loop takes <b>${loopSec.toFixed(1)}</b> s, now at bar <b>${bar}</b><br>` +
+      `One loop of 16 bars in 7/4 takes <b>${loopSec.toFixed(1)}</b> s, now at bar <b>${bar}</b><br>` +
       `Organ target <b>${organ.toFixed(2)}</b>, flame intensity <b>${flames.toFixed(2)}</b>`,
       `音高偏移 <b>${cents.toFixed(0)}</b> 音分（${(cents / 100).toFixed(2)} 个半音），速度 <b>${(BPM * rate).toFixed(1)}</b> BPM<br>` +
-      `16 小节一轮循环 <b>${loopSec.toFixed(1)}</b> 秒，当前第 <b>${bar}</b> 小节<br>` +
+      `16 小节 7/4 拍一轮循环 <b>${loopSec.toFixed(1)}</b> 秒，当前第 <b>${bar}</b> 小节<br>` +
       `风琴目标 <b>${organ.toFixed(2)}</b>，火焰强度 <b>${flames.toFixed(2)}</b>`);
     $('posBar').style.width = (G.pos / (LEN / SR) * 100) + '%';
   }
