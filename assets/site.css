@@ -66,6 +66,29 @@ figcaption{font-size:var(--fs-small);color:var(--mute);margin-top:10px}
 .stage a{color:var(--felt-ink);text-decoration-color:var(--felt-mute)}
 .stage code{background:rgba(0,0,0,.25);color:var(--felt-ink)}
 
+/* ---------- full-screen demo pages (01–03): stage fills the screen, panel on the left ---------- */
+body.full{height:100vh;overflow:hidden}
+.stage-full{position:fixed;left:0;right:0;bottom:0;top:var(--nav-h);border-radius:0}
+.stage-full canvas{display:block;width:100%;height:100%}
+.panel{position:fixed;left:0;top:var(--nav-h);bottom:0;width:360px;overflow:auto;z-index:10;scrollbar-width:thin;
+  padding:24px;background:var(--felt-deep);border-right:1px solid var(--felt-line);border-radius:0}
+.panel .step{color:var(--felt-mute)}
+.panel h1{font:600 var(--fs-h3)/1.3 var(--sans);margin:6px 0 8px}
+.panel .sub{color:var(--felt-mute);margin:0 0 16px}
+.panel button{font:inherit;color:var(--felt-ink);background:#2a4b3e;border:0;border-radius:6px;padding:6px 10px;cursor:pointer}
+.panel button:hover{background:#355a48}
+.panel button.on{background:var(--red)}
+.panel .go{width:100%;padding:10px;margin-bottom:8px;background:var(--act);font-weight:600}
+.panel .go:hover{background:var(--act);filter:brightness(1.08)}
+.panel .go:disabled{cursor:default;filter:none}
+.panel .stats{padding-top:12px;border-top:1px solid var(--felt-line);font-variant-numeric:tabular-nums;color:var(--felt-mute)}
+.panel .stats b{color:var(--felt-ink);font-weight:600}
+.mini-pager{display:flex;justify-content:space-between;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--felt-line)}
+.mini-pager a{text-decoration:none}
+@media (max-width:760px){
+  .panel{top:auto;width:auto;right:0;max-height:52vh;border-right:0;border-top:1px solid var(--felt-line);padding:18px 16px}
+}
+
 /* ---------- top nav ---------- */
 .site-nav{position:sticky;top:0;z-index:50;height:var(--nav-h);display:flex;align-items:center;gap:28px;
   padding:0 24px;background:var(--paper);border-bottom:1px solid var(--line);font-size:var(--fs-small)}

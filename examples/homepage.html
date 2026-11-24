@@ -7,9 +7,17 @@
 <link rel="stylesheet" href="../assets/site.css">
 <script src="../assets/i18n.js"></script>
 <style>
-  /* demo-site only: the template sits in a hairline frame, read as Figure 1 */
-  .preview{margin-top:32px}
-  .preview .frame{border:1px solid var(--line);border-radius:6px;background:#fff;position:relative;overflow:hidden}
+  /* layout shell (body.full, .panel, .mini-pager) lives in site.css.
+     Here the stage area is not felt: it is the template itself, full size, as your visitors would see it. */
+  .live{position:fixed;left:360px;right:0;top:var(--nav-h);bottom:0;overflow:auto;background:var(--paper);display:flex;align-items:center}
+  .panel .grp{padding:14px 0;border-top:1px solid var(--felt-line)}
+  .panel .lbl{color:var(--felt-ink);font-weight:600;margin:0 0 8px}
+  .panel ol{margin:0;padding-left:20px;color:var(--felt-mute)}
+  .panel ol li{margin:0 0 6px}
+  .panel .notice{border-left-color:var(--felt-ink);color:var(--felt-ink);font-size:inherit}
+  .tag{position:absolute;left:16px;top:12px;font-size:var(--fs-small);color:var(--mute)}
+  @media (max-width:760px){.live{left:0;bottom:52vh;align-items:flex-start}}
+
   /* ---- the template itself: copy from here ---- */
   .tpl{max-width:520px;margin:0 auto;padding:72px 32px 80px}
   .tpl h1{font:600 var(--fs-h2)/1.2 var(--serif);margin:0 0 12px}
@@ -17,11 +25,12 @@
   .tpl button{font:inherit;cursor:pointer;border-radius:6px;padding:10px 16px}
   #play{color:#fff;background:var(--act);border:0;font-weight:600}
   #scene{color:var(--ink);background:none;border:1px solid var(--ink);margin-left:8px}
-  #meter{position:absolute;right:20px;top:0;bottom:0;width:1px;background:var(--line)}
+  #meter{position:fixed;right:20px;top:var(--nav-h);bottom:0;width:1px;background:var(--line)}
   #dot{position:absolute;left:-5px;top:50%;width:11px;height:11px;border-radius:50%;background:var(--ink);transform:translateY(-5px)}
+  @media (max-width:760px){.tpl{padding:40px 24px 32px}#meter{bottom:52vh}}
 </style>
 </head>
-<body>
+<body class="full">
 <header class="site-nav">
   <a class="brand" href="../index.html">∞ <span>endless-loop-music</span></a>
   <nav aria-label="Site">
@@ -32,27 +41,35 @@
   </nav>
   <div class="ext"><a data-lang-switch href="?lang=zh">中文</a><a class="gh" href="https://github.com/JonasJoe233/endless-loop-music" data-zh-href="https://github.com/JonasJoe233/endless-loop-music/blob/main/README.zh-CN.md">GitHub</a></div>
 </header>
-<section class="page-intro">
+
+<div class="live">
+  <span class="tag" data-zh="模板实际效果 ↓">The template, live ↓</span>
+  <main class="tpl">
+    <h1 data-zh="你的名字">Your Name</h1>
+    <p data-zh="一个带无限配乐的极简主页。点播放，然后上下移动鼠标。下面两条分轨在浏览器里合成，所以这个例子不需要音频文件。换成你自己的 <code>{ url: 'stem.mp3', loopSeconds: 9.6 }</code> 即可。">A minimal homepage with an endless soundtrack. Press play, then move the mouse up and down.
+       The two stems below are synthesized in the browser so this example needs no audio files.
+       Swap them for your own <code>{ url: 'stem.mp3', loopSeconds: 9.6 }</code>.</p>
+    <button id="play" data-zh="▶ 播放声音">▶ Play sound</button><button id="scene" data-zh="加点闪光">Add sparkle</button>
+  </main>
+  <div id="meter"><div id="dot"></div></div>
+</div>
+
+<div class="panel stage">
   <div class="step" data-zh="第 3 步，共 3 步 · 复制这个">Step 3 of 3 · copy this</div>
   <h1 data-zh="主页模板">Homepage starter</h1>
-  <p data-zh="一个完整主页，在 <code>src/endless-loop.js</code> 之上约 75 行。下面框里是你要复制的模板。导航和这段文字属于演示站。">A complete homepage in about 75 lines on top of <code>src/endless-loop.js</code>. The frame below is the template you copy. The nav and this text belong to the demo site.</p>
-</section>
-<div class="col"><p class="notice" id="fileNote" hidden data-zh="你是从本地磁盘打开的这个文件。<code>file://</code> 下 ES module 导入会被拦截，所以不会出声。在仓库目录运行 <code>python3 -m http.server 8000</code>，打开 <code>http://localhost:8000/examples/homepage.html</code>，或者直接用线上站点。">You opened this file from disk. ES module imports are blocked on <code>file://</code>, so nothing will play. Run <code>python3 -m http.server 8000</code> in the repo folder and open <code>http://localhost:8000/examples/homepage.html</code>, or use the live site.</p></div>
-<script>if (location.protocol === "file:") document.getElementById("fileNote").hidden = false;</script>
-<figure class="wide preview">
-  <div class="frame">
-    <main class="tpl">
-      <h1 data-zh="你的名字">Your Name</h1>
-      <p data-zh="一个带无限配乐的极简主页。点播放，然后上下移动鼠标。下面两条分轨在浏览器里合成，所以这个例子不需要音频文件。换成你自己的 <code>{ url: 'stem.mp3', loopSeconds: 9.6 }</code> 即可。">A minimal homepage with an endless soundtrack. Press play, then move the mouse up and down.
-         The two stems below are synthesized in the browser so this example needs no audio files.
-         Swap them for your own <code>{ url: 'stem.mp3', loopSeconds: 9.6 }</code>.</p>
-      <button id="play" data-zh="▶ 播放声音">▶ Play sound</button><button id="scene" data-zh="加点闪光">Add sparkle</button>
-    </main>
-    <div id="meter"><div id="dot"></div></div>
+  <p class="sub" data-zh="一个完整主页，在 <code>src/endless-loop.js</code> 之上约 75 行。面板外面就是模板本身，访客看到的就是这样。右侧竖线上的圆点跟随鼠标高度，鼠标高度决定弯音。">A complete homepage in about 75 lines on top of <code>src/endless-loop.js</code>. Everything outside this panel is the template itself, exactly what a visitor sees. The dot on the right edge follows your mouse height, which sets the pitch bend.</p>
+  <p class="notice" id="fileNote" hidden data-zh="你是从本地磁盘打开的这个文件。<code>file://</code> 下 ES module 导入会被拦截，所以不会出声。在仓库目录运行 <code>python3 -m http.server 8000</code>，打开 <code>http://localhost:8000/examples/homepage.html</code>，或者直接用线上站点。">You opened this file from disk. ES module imports are blocked on <code>file://</code>, so nothing will play. Run <code>python3 -m http.server 8000</code> in the repo folder and open <code>http://localhost:8000/examples/homepage.html</code>, or use the live site.</p>
+  <div class="grp">
+    <p class="lbl" data-zh="怎么拿走">How to take it</p>
+    <ol>
+      <li data-zh="复制 <a href=&quot;https://github.com/JonasJoe233/endless-loop-music/blob/main/examples/homepage.html&quot;>examples/homepage.html</a> 里 <code>.tpl</code> 那段样式、<code>main</code> 和最后的 module 脚本。">Copy the <code>.tpl</code> styles, the <code>main</code> block and the module script from <a href="https://github.com/JonasJoe233/endless-loop-music/blob/main/examples/homepage.html">examples/homepage.html</a>.</li>
+      <li data-zh="把 <a href=&quot;https://github.com/JonasJoe233/endless-loop-music/blob/main/src/endless-loop.js&quot;>src/endless-loop.js</a> 放到你的站点里。">Put <a href="https://github.com/JonasJoe233/endless-loop-music/blob/main/src/endless-loop.js">src/endless-loop.js</a> on your site.</li>
+      <li data-zh="或者把 <a href=&quot;../index.html#use&quot;>概览页里的 prompt</a> 贴给你的 AI 工具。">Or paste <a href="../index.html#use">the prompt on the overview page</a> into your AI tool.</li>
+    </ol>
   </div>
-  <figcaption data-zh="图 1. 模板预览。右侧圆点跟随鼠标高度，鼠标高度决定弯音。">Figure 1. Preview of the template. The dot on the right follows your mouse height, which sets the pitch bend.</figcaption>
-</figure>
-<div class="pager"><a class="prev" href="../demos/mouse-bend.html" data-zh="<small>← 第 2 步</small>鼠标调音实验室"><small>← Step 2</small>Mouse bend lab</a><a class="next" href="../index.html#use" data-zh="<small>完成 →</small>用到你的主页上"><small>Done →</small>Add it to your homepage</a></div>
+  <div class="mini-pager"><a href="../demos/mouse-bend.html" data-zh="← 第 2 步 · 鼠标调音">← Step 2 · Mouse bend</a><a href="../index.html#use" data-zh="完成 · 用到你的主页 →">Done · Add it to your homepage →</a></div>
+</div>
+<script>if (location.protocol === "file:") document.getElementById("fileNote").hidden = false;</script>
 
 <script type="module">
 import { createEndlessLoop } from '../src/endless-loop.js';

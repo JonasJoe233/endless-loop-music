@@ -7,42 +7,48 @@
 <link rel="stylesheet" href="../assets/site.css">
 <script src="../assets/i18n.js"></script>
 <style>
-  /* the mixer is one .stage; game colors stay inside it */
-  .mixer{margin-top:32px;padding:24px}
-  .mixer .grp{padding:16px 0;border-top:1px solid var(--felt-line)}
-  .mixer > .grp:first-of-type{border-top:0;padding-top:0}
-  .mixer .lbl{color:var(--felt-mute);margin:0 0 10px}
-  .mixer .lbl b{color:var(--felt-ink)}
-  .mixer .two{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
-  .mixer .two .grp{border-top:1px solid var(--felt-line)}
-  @media(max-width:760px){.mixer{padding:18px}.mixer .two{grid-template-columns:1fr}}
-  .mixer button{font:inherit;color:var(--felt-ink);background:#2a4b3e;border:0;border-bottom:3px solid rgba(0,0,0,.35);border-radius:6px;padding:7px 10px;cursor:pointer}
-  .mixer button:hover{filter:brightness(1.15)}
-  .mixer button:active{transform:translateY(2px);border-bottom-width:1px}
-  .mixer button.on{background:var(--red)}
-  #start{width:100%;margin-bottom:20px;border-bottom:0;background:var(--act);font-weight:600}
-  .states{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  /* layout shell (body.full, .stage-full, .panel, .mini-pager) lives in site.css; game colors stay inside .stage */
+  #sw{image-rendering:pixelated;image-rendering:crisp-edges}
+  .grp{padding:14px 0;border-top:1px solid var(--felt-line)}
+  .lbl{color:var(--felt-mute);margin:0 0 10px}
+  .lbl b{color:var(--felt-ink)}
+  .grp small{display:block;color:var(--felt-mute);font-size:inherit;line-height:1.45;margin-top:10px}
+  .grp small code{font-size:13px}
+  .panel button{border-bottom:3px solid rgba(0,0,0,.35)}
+  .panel button:active{transform:translateY(2px);border-bottom-width:1px}
+  .panel .go{border-bottom:0}
+  .states{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .states button{padding:8px 4px;line-height:1.3}
-  .states button small{display:block;opacity:.7;font-size:inherit}
-  @media(max-width:560px){.states{grid-template-columns:repeat(3,1fr)}}
-  .row{display:flex;align-items:center;gap:10px;margin:8px 0;flex-wrap:wrap}
-  .row label{width:104px;flex:none;color:var(--felt-mute)}
-  .row input[type=range]{flex:1;min-width:120px;accent-color:var(--red)}
-  .row output{width:64px;text-align:right;font-variant-numeric:tabular-nums}
+  .states button small{display:block;opacity:.7;font-size:inherit;margin:0;color:inherit}
+  .row{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .row label{flex:none;color:var(--felt-mute)}
+  .row input[type=range]{flex:1;min-width:0;accent-color:var(--red)}
+  .row output{width:52px;flex:none;text-align:right;font-variant-numeric:tabular-nums}
   .meters{display:grid;gap:6px}
-  .meter{display:grid;grid-template-columns:112px 1fr 40px;align-items:center;gap:8px}
+  .meter{display:grid;grid-template-columns:104px 1fr 36px;align-items:center;gap:8px}
   .bar{height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
   .bar i{display:block;height:100%;width:0;border-radius:4px}
   .meter span:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--felt-mute)}
-  .stats{font-variant-numeric:tabular-nums;line-height:1.9;color:var(--felt-mute)}
-  .stats b{color:var(--gold);font-weight:600}
+  .panel .stats{line-height:1.8}
+  .panel .stats b{color:var(--gold)}
   .pos{height:4px;background:rgba(255,255,255,.08);border-radius:4px;margin-top:8px;overflow:hidden}
   .pos i{display:block;height:100%;width:0;background:var(--blue)}
-  .explain{margin-top:24px}
-  @media(max-width:760px){.row{flex-wrap:nowrap}.row label{width:auto;flex:0 1 auto}.row input[type=range]{min-width:0}.row output{width:44px;flex:none}}
+  /* the big readout over the swirl */
+  .now{position:fixed;left:360px;right:0;top:var(--nav-h);bottom:0;z-index:5;pointer-events:none;background:none;border-radius:0;padding:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--felt-ink);
+    text-shadow:0 2px 12px rgba(0,0,0,.55)}
+  .now::before{content:"";position:absolute;width:min(560px,90%);aspect-ratio:2/1;z-index:-1;
+    background:radial-gradient(closest-side,rgba(16,40,32,.78),rgba(16,40,32,0))}
+  .now .name{font:600 var(--fs-display)/1.05 var(--serif);margin:0}
+  .now .rate{font:var(--fs-small) var(--mono);color:var(--felt-ink);opacity:.85;margin-top:14px;font-variant-numeric:tabular-nums}
+  .beats{display:flex;gap:10px;margin-top:22px}
+  .beats i{width:12px;height:12px;border-radius:2px;background:rgba(237,230,214,.22);transition:background .08s}
+  .beats i.gap{margin-left:14px}
+  .beats i.hit{background:var(--felt-ink)}
+  @media (max-width:760px){.now{left:0;bottom:52vh}.now .rate{margin-top:8px}.beats{margin-top:14px}}
 </style>
 </head>
-<body>
+<body class="full">
 <header class="site-nav">
   <a class="brand" href="../index.html">∞ <span>endless-loop-music</span></a>
   <nav aria-label="Site">
@@ -53,54 +59,44 @@
   </nav>
   <div class="ext"><a data-lang-switch href="?lang=zh">中文</a><a class="gh" href="https://github.com/JonasJoe233/endless-loop-music" data-zh-href="https://github.com/JonasJoe233/endless-loop-music/blob/main/README.zh-CN.md">GitHub</a></div>
 </header>
-<section class="page-intro">
+<div class="stage stage-full"><canvas id="sw" aria-hidden="true"></canvas></div>
+<div class="now stage" aria-live="off">
+  <p class="name" id="nowName"></p>
+  <div class="beats" id="beats" aria-hidden="true"><i></i><i></i><i></i><i></i><i class="gap"></i><i></i><i></i></div>
+  <div class="rate" id="nowRate">×0.700</div>
+</div>
+
+<div class="panel stage">
   <div class="step" data-zh="第 1 步，共 3 步 · 给小丑牌玩家">Step 1 of 3 · for Balatro fans</div>
   <h1 data-zh="用 Web Audio 重做小丑牌的音乐机">Balatro's music machine, rebuilt in Web Audio</h1>
-  <p data-zh="这里每条规则都照着游戏的 <code>engine/sound_manager.lua</code> 和 <code>modulate_sound()</code>。音乐是结构相同的原创曲，不是游戏原声。点开始，切到商店再切回来，然后按 Game Over。">Every rule here follows the game's <code>engine/sound_manager.lua</code> and <code>modulate_sound()</code>. The music is an original piece with the same structure, not the soundtrack. Press start, switch to Shop and back, then hit Game Over.</p>
-</section>
-
-<div class="wide">
-<div class="stage mixer">
-  <button id="start" data-zh="▶ 开始播放">▶ Start sound</button>
+  <p class="sub" data-zh="每条规则都照着游戏的 <code>engine/sound_manager.lua</code> 和 <code>modulate_sound()</code>。曲子是结构相同的原创曲。点开始，切到商店再切回来，然后按 Game Over。">Every rule follows the game's <code>engine/sound_manager.lua</code> and <code>modulate_sound()</code>. The music is an original piece with the same structure. Press start, switch to Shop and back, then hit Game Over.</p>
+  <button id="start" class="go" data-zh="▶ 开始播放">▶ Start sound</button>
 
   <div class="grp">
     <p class="lbl" data-zh="<b>① 游戏状态</b> → desired_track"><b>① Game state</b> → desired_track</p>
     <div class="states" id="states"></div>
+    <small data-zh="五条完整音轨同时起播，永不停止。切状态只把目标音轨按 <code>dt×3</code> 推向 1，约 0.33 秒。播放头不归零，旋律接着走。">Five full tracks start together and never stop. A switch only pushes the desired track toward 1 by <code>dt×3</code>, about 0.33 s. The playhead never resets, so the melody keeps going.</small>
   </div>
-
-  <div class="two">
-    <div class="grp">
-      <p class="lbl" data-zh="<b>② 音高</b> = original_pitch × PITCH_MOD"><b>② Pitch</b> = original_pitch × PITCH_MOD</p>
-      <div class="row"><label>original_pitch</label><input id="pitch" type="range" min="0.5" max="1" step="0.01" value="0.7"><output id="pitchOut">0.70</output></div>
-      <div class="row"><button id="ab" data-zh="A/B：原速 1.0">A/B: original speed 1.0</button><button id="over">Game Over</button></div>
-    </div>
-    <div class="grp">
-      <p class="lbl" data-zh="<b>③ 出牌得分</b> → 氛围层"><b>③ Hand score</b> → ambient layers</p>
-      <div class="row"><label data-zh="得分 / 目标">Score / target</label><input id="score" type="range" min="-1" max="4" step="0.01" value="-1"><output id="scoreOut">0.1×</output></div>
-      <div class="meters" id="ambMeters"></div>
-    </div>
-    <div class="grp">
-      <p class="lbl" data-zh="<b>音轨音量</b>（实时）"><b>Track volumes</b> (live)</p>
-      <div class="meters" id="trackMeters"></div>
-    </div>
-    <div class="grp">
-      <p class="lbl" data-zh="<b>播放状态</b>"><b>Playback</b></p>
-      <div class="stats" id="stats" data-zh="未开始">Not started</div>
-      <div class="pos"><i id="posBar"></i></div>
-    </div>
+  <div class="grp">
+    <p class="lbl" data-zh="<b>② 音高</b> = original_pitch × PITCH_MOD"><b>② Pitch</b> = original_pitch × PITCH_MOD</p>
+    <div class="row"><label>original_pitch</label><input id="pitch" type="range" min="0.5" max="1" step="0.01" value="0.7"><output id="pitchOut">0.70</output></div>
+    <div class="row"><button id="ab" data-zh="A/B：原速 1.0">A/B: original speed 1.0</button><button id="over">Game Over</button></div>
+    <small data-zh="所有音乐按 <code>per = 0.7</code> 播放：慢 30%，低约 6.2 个半音。Game Over 时 <code>PITCH_MOD</code> 滑向 0.5，这就是磁带停转。">All music plays at <code>per = 0.7</code>: 30% slower, about 6.2 semitones lower. Game Over slides <code>PITCH_MOD</code> toward 0.5. That is the tape stop.</small>
   </div>
+  <div class="grp">
+    <p class="lbl" data-zh="<b>③ 出牌得分</b> → 氛围层"><b>③ Hand score</b> → ambient layers</p>
+    <div class="row"><label data-zh="得分 / 目标">Score / target</label><input id="score" type="range" min="-1" max="4" step="0.01" value="-1"><output id="scoreOut">0.1×</output></div>
+    <div class="meters" id="ambMeters"></div>
+    <small data-zh="风琴音量是 <code>0.1 × log₅(得分 / 目标)</code>，上限 0.4，超过目标才出现。火焰层按得分比近似计分火焰。两层都不受 PITCH_MOD 影响。">Organ volume is <code>0.1 × log₅(score / target)</code>, capped at 0.4, and only above the target. Fire approximates the scoring flames from the score ratio. Neither layer follows PITCH_MOD.</small>
+  </div>
+  <div class="grp">
+    <p class="lbl" data-zh="<b>音轨音量</b>（实时）"><b>Track volumes</b> (live)</p>
+    <div class="meters" id="trackMeters"></div>
+  </div>
+  <div class="stats" id="stats" data-zh="未开始">Not started</div>
+  <div class="pos"><i id="posBar"></i></div>
+  <div class="mini-pager"><a href="../index.html" data-zh="← 概览">← Overview</a><a href="mouse-bend.html" data-zh="第 2 步 · 鼠标调音 →">Step 2 · Mouse bend →</a></div>
 </div>
-</div>
-
-<section class="col explain">
-  <h3 data-zh="① 切状态只动音量，不动播放头">① State changes move volumes, not the playhead</h3>
-  <p data-zh="五条完整音轨同时启动，永不停止。每帧把目标音轨按 <code>dt×3</code> 推向 1，其余推向 0，时间常数约 0.33 秒。切场景时旋律接着走，不会从头开始。">Five full tracks start at the same moment and never stop. Every frame the desired track moves toward 1 by <code>dt×3</code> and the others toward 0, a time constant of about 0.33 s. The melody keeps going across scene changes instead of restarting.</p>
-  <h3 data-zh="② 全部放慢播放">② Everything plays slow</h3>
-  <p data-zh="游戏里所有音乐都按 <code>per = 0.7</code> 播放：慢 30%，低约 6.2 个半音。Game Over 时 <code>PITCH_MOD</code> 滑向 0.5，每秒走完剩余距离的约 63%。你听到的磁带停转就是它。">All music in the game plays at <code>per = 0.7</code>: 30% slower and about 6.2 semitones lower. On Game Over, <code>PITCH_MOD</code> slides toward 0.5, about 63% of the way per second. That is the tape-stop you hear.</p>
-  <h3 data-zh="③ 得分往上叠声部">③ Your score adds layers</h3>
-  <p data-zh="风琴音量是 <code>0.1 × log₅(得分 / 目标)</code>，上限 0.4，只在超过目标后出现。火焰层跟随计分火焰强度，这里用得分比近似。两层都在音乐之外，不受 PITCH_MOD 影响。">Organ volume is <code>0.1 × log₅(score / target)</code>, capped at 0.4, and only above the target. Fire follows the scoring-flame intensity, approximated here from the score ratio. Both layers sit outside the music and ignore PITCH_MOD.</p>
-</section>
-<div class="pager"><a class="prev" href="../index.html" data-zh="<small>← 概览</small>起因和信号链"><small>← Overview</small>The story and the signal chain</a><a class="next" href="mouse-bend.html" data-zh="<small>第 2 步 →</small>鼠标调音实验室"><small>Step 2 →</small>Mouse bend lab</a></div>
 <script>
 /* ================= score: 16 bars of 7/4 (felt as 4+3), D dorian / minor, written at the unslowed 100 BPM ================= */
 // The game's five themes are in 7/4 (balatrowiki.org/w/Music). The odd bar never lands where a 4/4 ear expects it to,
@@ -398,10 +394,51 @@ $('start').onclick = async e => {
 };
 
 const setBar = (id, v, max = 1) => { $(id).style.width = Math.min(100, v / max * 100) + '%'; $(id + 'v').textContent = v.toFixed(2); };
+/* ================= pixel swirl: the stage background, tinted by the tracks you hear ================= */
+// Same field as the promo video: a low-res grid quantized to 5 colors and drawn with image-rendering:pixelated.
+// Our own drawing in the game's style; no game art. The swirl turns at the playback rate, so Game Over slows it down.
+const sw = $('sw'), sx = sw.getContext('2d'), PX = 6;
+let GW = 0, GH = 0, img = null, R0, A0, swT = 0, swLast = 0;
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const TCOL = TRACKS.map(t => hex(t.color));
+function swResize() {
+  const r = sw.getBoundingClientRect(); GW = Math.ceil(r.width / PX); GH = Math.ceil(r.height / PX);
+  sw.width = GW; sw.height = GH; img = sx.createImageData(GW, GH);
+  const phone = r.width <= 760, cx = phone ? GW / 2 : (360 / PX + (GW - 360 / PX) / 2), cy = phone ? GH * 0.24 : GH / 2, s = Math.max(GW, GH) / 1.2;
+  R0 = new Float32Array(GW * GH); A0 = new Float32Array(GW * GH);
+  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) { const u = (x - cx) / s, v = (y - cy) / s, k = y * GW + x; R0[k] = Math.hypot(u, v); A0[k] = Math.atan2(v, u); }
+}
+addEventListener('resize', swResize); swResize();
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function swirl(ms, rate) {
+  const dt = Math.min(0.1, (ms - swLast) / 1000); swLast = ms;
+  if (!still || !swT) swT += dt * (rate / 0.7);              // 1× speed at the game's 0.7, slower as PITCH_MOD falls
+  // accent = the track volumes mixed together, so a state switch fades the color in about 0.33 s like the audio
+  let ac = [0, 0, 0], w = 0;
+  (live.length ? live : TRACKS.map(t => ({ ...t, cur: t.code === G.desired ? 1 : 0 }))).forEach((s, i) => {
+    w += s.cur; for (let c = 0; c < 3; c++) ac[c] += TCOL[i][c] * s.cur; });
+  ac = ac.map((v, c) => v / (w || 1) * 0.7 + [46, 82, 66][c] * 0.3);   // pull the track color a little toward the felt so it stays a background
+  const dark = ac.map(v => v * 0.35), PAL = [[32, 58, 48], [46, 82, 66], dark, ac, [236, 226, 206]];
+  const k = 0.62 + (started ? 0.06 * Math.max(0, 1 - beatPhase * 4) : 0);   // a small lift on every beat
+  const d = img.data, t = swT;
+  for (let i = 0; i < R0.length; i++) {
+    const R = R0[i], a = A0[i] + 2.6 * R - 0.35 * t;
+    const v = Math.sin(5 * a + 1.5 * Math.sin(3 * R - 0.8 * t)) * 0.6 + Math.sin(9 * R - 1.2 * t + 2 * a) * 0.4;
+    let q = Math.min(4, Math.max(0, ((v + 1) / 2 * 4.6) | 0));
+    if (q === 4 && Math.sin(13 * a + t) < 0.6) q = 3;
+    const c = PAL[q], j = i * 4; d[j] = c[0] * k; d[j + 1] = c[1] * k; d[j + 2] = c[2] * k; d[j + 3] = 255;
+  }
+  sx.putImageData(img, 0, 0);
+}
+
+/* ================= per frame ================= */
+const beatEls = [...document.querySelectorAll('#beats i')];
+let beatPhase = 1, shownName = '';
 function frame(ms) {
+  let rate = G.original_pitch * G.PITCH_MOD;
   if (started) {
     const dt = Math.min(0.1, (ms - lastT) / 1000); lastT = ms;
-    const { rate, organ, flames } = step(dt);
+    const r = step(dt), { organ, flames } = r; rate = r.rate;
     live.forEach(s => setBar('m_' + s.code, s.cur));
     setBar('m_org', amb.ambientOrgan1.vol, 0.4); setBar('m_f2', amb.ambientFire2.vol, 0.9); setBar('m_f1', amb.ambientFire1.vol, 0.8);
     const cents = 1200 * Math.log2(rate), loopSec = LEN / SR / rate, bar = Math.floor(G.pos / (BPB * BEAT)) + 1;
@@ -414,7 +451,14 @@ function frame(ms) {
       `16 小节 7/4 拍一轮循环 <b>${loopSec.toFixed(1)}</b> 秒，当前第 <b>${bar}</b> 小节<br>` +
       `风琴目标 <b>${organ.toFixed(2)}</b>，火焰强度 <b>${flames.toFixed(2)}</b>`);
     $('posBar').style.width = (G.pos / (LEN / SR) * 100) + '%';
+    // 7/4 counter: seven squares grouped 4+3, the lit one is the current beat
+    const beatPos = G.pos / BEAT, nb = Math.floor(beatPos) % BPB; beatPhase = beatPos % 1;
+    beatEls.forEach((e, i) => e.classList.toggle('hit', i === nb));
+    $('nowRate').textContent = `×${rate.toFixed(3)} · ${tr('bar', '小节')} ${bar}/16`;
   }
+  const name = TRACKS.find(t => t.code === G.desired).name;
+  if (name !== shownName) $('nowName').textContent = shownName = name;
+  swirl(ms, rate);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
