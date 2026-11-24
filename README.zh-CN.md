@@ -178,6 +178,7 @@ python3 -m http.server 8000   # 然后打开 http://localhost:8000
 - 小丑牌由 LocalThunk 开发，Playstack 发行，配乐作者是 LouisF。本项目与他们无关，也未获其背书，不含任何游戏素材。
 - 感谢逆向整理小丑牌源码的维护者，让音频代码变得可读。
 - 感谢 [nays.tech](https://nays.tech) 提供「主页随鼠标响应」的灵感。
+- 本项目由 Jonas Qiao 借助 Claude（Anthropic）完成。大部分代码、文档和 demo 由 AI 辅助生成，我负责定方向、做取舍和验收。
 
 ## 许可
 

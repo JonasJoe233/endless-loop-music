@@ -178,6 +178,7 @@ Open an [issue](https://github.com/JonasJoe233/endless-loop-music/issues/new) wi
 - Balatro is made by LocalThunk and published by Playstack. Its soundtrack is by LouisF. This project is not affiliated with or endorsed by them, and it contains no game assets.
 - Thanks to the maintainers of the reverse-engineered Balatro source for making the sound code readable.
 - Thanks to [nays.tech](https://nays.tech) for the idea of a homepage that responds as you move.
+- Built by Jonas Qiao with Claude (Anthropic) as the AI coding assistant. Most of the code, docs and demos were written through AI-assisted development. I set the direction, made the calls and checked the results.
 
 ## License
 
