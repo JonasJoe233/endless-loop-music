@@ -23,7 +23,7 @@ These rules apply to humans and AI coding agents working in this repo.
 5. Audio must start only after a user gesture, and every page needs a way to stop it.
 6. Test in a browser before committing: start audio, switch states, check the console for errors.
 7. File names are lowercase kebab-case.
-8. Every page is part of one site. Link `assets/site.css`, use the same `.site-nav` markup with `aria-current` on the active item, and end subpages with a way to the previous and next step: a `.pager` on scrolling pages, a `.mini-pager` at the bottom of the `.panel` on full-screen pages. Page order: Overview → 01 Balatro → 02 Mouse bend → 03 Starter → `index.html#use`.
+8. Every page is part of one site. Link `assets/site.css`, put the same inline `∞` SVG favicon (`<link rel="icon" href="data:image/svg+xml,...">`, copy it from `index.html`) right after it, use the same `.site-nav` markup with `aria-current` on the active item, and end subpages with a way to the previous and next step: a `.pager` on scrolling pages, a `.mini-pager` at the bottom of the `.panel` on full-screen pages. Page order: Overview → 01 Balatro → 02 Mouse bend → 03 Starter → `index.html#use`.
 9. Link to explicit files such as `../index.html`, never `../`. A bare directory link opens a file listing when the page is opened from disk.
 10. Put theme colors in `assets/site.css`. Pages keep only their own layout. Design rules:
     - Five type sizes (56 / 30 / 19 / 17 / 14) and two weights (400, 600). No web fonts.
