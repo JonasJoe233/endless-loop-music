@@ -2,9 +2,13 @@
 
 **一段很短的循环，怎么听起来永远不结束。** 本仓库有两个浏览器 demo 和一个小模块。小丑牌（Balatro）的音乐机制也在这里，已对照游戏源码核实。
 
-[English](README.md) · [在线 demo](https://JonasJoe233.github.io/endless-loop-music/)
+**[▶ 在浏览器里直接玩](https://jonasjoe233.github.io/endless-loop-music/demos/balatro.html?lang=zh)** · [用到你的主页](#用到你的个人主页) · [原理拆解](#第二部分小丑牌的音乐机制来自源码) · [English](README.md)
 
-![两个 demo 共用一条信号链](docs/signal-chain.png)
+[![小丑牌 demo 依次切到盲注、商店、Boss 盲注，最后 Game Over](docs/demo.gif)](https://jonasjoe233.github.io/endless-loop-music/demos/balatro.html?lang=zh)
+
+<sub>盲注 → 商店 → Boss 盲注 → Game Over，2 倍速。在线 demo 点「开始」后才出声。</sub>
+
+**想放到自己的网站上？** 点 **Use this template** 或 fork 本仓库，然后按[用到你的个人主页](#用到你的个人主页)一节操作。模块零依赖，不用构建。
 
 ## 起因
 
@@ -25,12 +29,16 @@
 
 | | 打开 | 能听到什么 |
 |---|---|---|
-| 小丑牌音乐机制 | [`demos/balatro.html`](demos/balatro.html) | 五轨同步、0.7 倍放慢、Game Over 磁带停转、随得分出现的环境层。 |
-| 鼠标变调实验 | [`demos/mouse-bend.html`](demos/mouse-bend.html) | nays.tech 的变调曲线，外加互质循环长度、慢速漂移、场景交叉淡化的开关。 |
-| 主页模板 | [`examples/homepage.html`](examples/homepage.html) | 约 75 行，调用 `src/endless-loop.js`。可直接拷进你的网站。 |
+| 小丑牌音乐机制 | [试玩](https://jonasjoe233.github.io/endless-loop-music/demos/balatro.html?lang=zh) · [`demos/balatro.html`](demos/balatro.html) | 五轨同步、0.7 倍放慢、Game Over 磁带停转、随得分出现的环境层。 |
+| 鼠标变调实验 | [试玩](https://jonasjoe233.github.io/endless-loop-music/demos/mouse-bend.html?lang=zh) · [`demos/mouse-bend.html`](demos/mouse-bend.html) | nays.tech 的变调曲线，外加互质循环长度、慢速漂移、场景交叉淡化的开关。 |
+| 主页模板 | [试玩](https://jonasjoe233.github.io/endless-loop-music/examples/homepage.html?lang=zh) · [`examples/homepage.html`](examples/homepage.html) | 约 75 行，调用 `src/endless-loop.js`。可直接拷进你的网站。 |
 | 模块 | [`src/endless-loop.js`](src/endless-loop.js) | 零依赖，约 120 行。 |
 
 所有声音都在浏览器里合成，仓库不带任何音频文件。小丑牌 demo 的曲子按同样结构原创，不是游戏原声。
+
+两个 demo 共用一条信号链：
+
+![两个 demo 共用一条信号链](docs/signal-chain.png)
 
 ## 第一部分：主页的做法，鼠标高度控制音高
 
@@ -160,6 +168,10 @@ API：`start()`、`followPointer()`、`setBend(cents)`、`setRate(rate)`、`setS
 ```sh
 python3 -m http.server 8000   # 然后打开 http://localhost:8000
 ```
+
+## 你用它做了东西？
+
+开一个 [issue](https://github.com/JonasJoe233/endless-loop-music/issues/new)，贴上你的页面链接。我会在这里列出用到它的网站。如果这个仓库帮到了你，点个 star 能让更多人找到它。
 
 ## 致谢
 

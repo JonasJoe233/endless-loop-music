@@ -2,9 +2,13 @@
 
 **How a short loop can sound like it never ends.** Two browser demos, one small module, and the mechanism behind Balatro's music, checked against the game's source.
 
-[中文版](README.zh-CN.md) · [Live demos](https://JonasJoe233.github.io/endless-loop-music/)
+**[▶ Play it in your browser](https://jonasjoe233.github.io/endless-loop-music/demos/balatro.html)** · [Put it on your homepage](#use-it-on-your-homepage) · [How it works](#part-2--balatros-music-machine-from-the-source) · [中文版](README.zh-CN.md)
 
-![One signal chain behind both demos](docs/signal-chain.png)
+[![Blind, Shop, Boss Blind, then Game Over in the Balatro demo](docs/demo.gif)](https://jonasjoe233.github.io/endless-loop-music/demos/balatro.html)
+
+<sub>Blind → Shop → Boss Blind → Game Over, shown at 2× speed. The live demo plays sound after you click Start.</sub>
+
+**Want it on your own site?** Click **Use this template** or fork the repo. Then follow [Use it on your homepage](#use-it-on-your-homepage). The module has no dependencies and no build step.
 
 ## Why this exists
 
@@ -25,12 +29,16 @@ I will use this on my own homepage, and the homepage links back here.
 
 | | Open | What you hear |
 |---|---|---|
-| Balatro music machine | [`demos/balatro.html`](demos/balatro.html) | Five synced tracks, the 0.7× slowdown, a Game Over tape stop, and score-driven ambient layers. |
-| Mouse bend lab | [`demos/mouse-bend.html`](demos/mouse-bend.html) | The nays.tech pitch curve, plus switches for coprime loop lengths, slow drift and scene crossfades. |
-| Homepage starter | [`examples/homepage.html`](examples/homepage.html) | About 75 lines that use `src/endless-loop.js`. Copy it into your site. |
+| Balatro music machine | [Play](https://jonasjoe233.github.io/endless-loop-music/demos/balatro.html) · [`demos/balatro.html`](demos/balatro.html) | Five synced tracks, the 0.7× slowdown, a Game Over tape stop, and score-driven ambient layers. |
+| Mouse bend lab | [Play](https://jonasjoe233.github.io/endless-loop-music/demos/mouse-bend.html) · [`demos/mouse-bend.html`](demos/mouse-bend.html) | The nays.tech pitch curve, plus switches for coprime loop lengths, slow drift and scene crossfades. |
+| Homepage starter | [Play](https://jonasjoe233.github.io/endless-loop-music/examples/homepage.html) · [`examples/homepage.html`](examples/homepage.html) | About 75 lines that use `src/endless-loop.js`. Copy it into your site. |
 | Module | [`src/endless-loop.js`](src/endless-loop.js) | Zero dependencies, about 120 lines. |
 
 All audio is synthesized in the browser, so the repo ships no sound files. The music in the Balatro demo is an original piece written with the same structure. It is not the game's soundtrack.
+
+Both demos share one signal chain:
+
+![One signal chain behind both demos](docs/signal-chain.png)
 
 ## Part 1 · The homepage trick: mouse Y bends the pitch
 
@@ -160,6 +168,10 @@ The demos in `demos/` open directly from disk. `examples/homepage.html` uses an 
 ```sh
 python3 -m http.server 8000   # then open http://localhost:8000
 ```
+
+## Built something with it?
+
+Open an [issue](https://github.com/JonasJoe233/endless-loop-music/issues/new) with a link to your page. I will add a list of sites that use it here. If the repo helped you, a star helps other people find it.
 
 ## Credits
 

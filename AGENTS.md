@@ -11,7 +11,7 @@ These rules apply to humans and AI coding agents working in this repo.
 | `demos/` | Single-file demos. No JS imports, no build step. They may link `../assets/site.css`. |
 | `examples/` | Copy-paste starting points that use `src/`. |
 | `src/endless-loop.js` | The reusable module. Zero dependencies, plain ES module. |
-| `docs/` | Diagrams. Edit the `.svg`, then re-export the `.png` at 2x. |
+| `docs/` | Diagrams and `demo.gif`. Edit the `.svg`, then re-export the `.png` at 2x. Keep `demo.gif` under 3 MB (record the live 01 demo, 2× speed, 10 fps, 680 px wide, 64 colors). |
 | `README.md` / `README.zh-CN.md` | English is the source. The Chinese file mirrors it. |
 
 ## Rules
