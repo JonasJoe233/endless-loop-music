@@ -450,7 +450,7 @@ let beatPhase = 1, shownName = '';
 function frame(ms) {
   let rate = G.original_pitch * G.PITCH_MOD;
   if (started) {
-    const dt = Math.min(0.1, (ms - lastT) / 1000); lastT = ms;
+    const dt = Math.max(0, Math.min(0.1, (ms - lastT) / 1000)); lastT = ms;   // rAF's timestamp can be earlier than lastT on the first frame
     const r = step(dt), { organ, flames } = r; rate = r.rate;
     live.forEach(s => setBar('m_' + s.code, s.cur));
     setBar('m_org', amb.ambientOrgan1.vol, 0.4); setBar('m_f2', amb.ambientFire2.vol, 0.9); setBar('m_f1', amb.ambientFire1.vol, 0.8);
