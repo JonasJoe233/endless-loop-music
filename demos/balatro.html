@@ -243,12 +243,24 @@ const LAYERS = {
   }
 };
 
+// Render one bar per OfflineAudioContext, all bars in parallel. A single context holding all 16 bars is 15-20x
+// slower, because every scheduled node costs time on every render quantum until it ends.
+const CHUNK = Math.round(BPB * BEAT * SR), CTAIL = 11 * SR;   // one 7/4 bar; the tail covers the longest note (space pad, ~9.8 s)
 async function renderLayer(name) {
-  const oc = new OfflineAudioContext(1, LEN + TAIL, SR);
-  const out = oc.createGain(); out.connect(oc.destination);
-  LAYERS[name](oc, out);
-  const d = (await oc.startRendering()).getChannelData(0);
-  for (let i = 0; i < TAIL; i++) d[i] += d[LEN + i];     // fold the tail back onto the start: no gap at the seam
+  const ev = [], orig = { ...SYN };                        // 1. record the layer's notes instead of building nodes
+  for (const k in SYN) SYN[k] = (oc, out, t, ...a) => ev.push([k, t, a]);
+  try { LAYERS[name](null, null); } finally { Object.assign(SYN, orig); }
+  const bars = [];
+  ev.forEach(e => { const c = Math.max(0, Math.floor(e[1] * SR / CHUNK)); (bars[c] = bars[c] || []).push(e); });
+  const d = new Float32Array(LEN + TAIL);
+  await Promise.all(bars.map(async (notes, c) => {          // 2. render each bar on its own, then add it in place
+    const t0 = c * CHUNK / SR, oc = new OfflineAudioContext(1, CHUNK + CTAIL, SR);
+    const out = oc.createGain(); out.connect(oc.destination);
+    notes.forEach(([k, t, a]) => SYN[k](oc, out, Math.max(0, t - t0), ...a));
+    const s = (await oc.startRendering()).getChannelData(0), at = c * CHUNK, n = Math.min(s.length, d.length - at);
+    for (let i = 0; i < n; i++) d[at + i] += s[i];
+  }));
+  for (let i = 0; i < TAIL; i++) d[i] += d[LEN + i];       // fold the tail back onto the start: no gap at the seam
   return d.slice(0, LEN);
 }
 // distorted organ for the Boss track: tanh soft clip + one-pole lowpass on samples
@@ -322,8 +334,9 @@ function reverb(ctx) {                        // generated stereo impulse respon
 async function start() {
   ctx = new AudioContext(); await ctx.resume();
   const say = s => document.getElementById('stats').textContent = s;
+  const ambient = renderAmbient();                         // runs alongside the layers
   const buffers = await buildTracks(say);
-  say(tr('Rendering ambient layers…', '正在渲染氛围层…')); const ab = await renderAmbient();
+  say(tr('Rendering ambient layers…', '正在渲染氛围层…')); const ab = await ambient;
 
   master = ctx.createGain(); master.gain.value = 0.9;
   const dry = ctx.createGain(), wet = ctx.createGain(), rv = reverb(ctx);
